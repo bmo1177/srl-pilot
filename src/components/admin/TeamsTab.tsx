@@ -6,7 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Star, Trash2, RefreshCw } from "lucide-react";
+import { Star, Trash2, RefreshCw, X, Check, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Student {
   id: string;
@@ -26,6 +31,11 @@ export const TeamsTab = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateTeamDialog, setShowCreateTeamDialog] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedLeader, setSelectedLeader] = useState("");
+  const [createTeamLoading, setCreateTeamLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -121,6 +131,102 @@ export const TeamsTab = () => {
     }
   };
 
+  const handleCreateTeam = async () => {
+    if (!newTeamName.trim()) {
+      toast.error("Team name is required");
+      return;
+    }
+
+    if (selectedMembers.length === 0) {
+      toast.error("Please select at least one team member");
+      return;
+    }
+
+    if (selectedMembers.length > 5) {
+      toast.error("Maximum 5 members allowed per team");
+      return;
+    }
+
+    if (!selectedLeader) {
+      toast.error("Please select a team leader");
+      return;
+    }
+
+    if (!selectedMembers.includes(selectedLeader)) {
+      toast.error("Team leader must be a selected member");
+      return;
+    }
+
+    setCreateTeamLoading(true);
+
+    try {
+      // Create the team
+      const { data: teamData, error: teamError } = await supabase
+        .from('teams')
+        .insert([
+          { 
+            name: newTeamName,
+            leader_id: selectedLeader,
+            status: 'active'
+          }
+        ])
+        .select();
+
+      if (teamError) throw teamError;
+      
+      if (!teamData || teamData.length === 0) {
+        throw new Error("Failed to create team");
+      }
+
+      const teamId = teamData[0].id;
+
+      // Add all selected members to the team
+      const memberInserts = selectedMembers.map(studentId => ({
+        team_id: teamId,
+        student_id: studentId
+      }));
+
+      const { error: membersError } = await supabase
+        .from('team_members')
+        .insert(memberInserts);
+
+      if (membersError) throw membersError;
+
+      toast.success("Team created successfully");
+      setShowCreateTeamDialog(false);
+      setNewTeamName("");
+      setSelectedMembers([]);
+      setSelectedLeader("");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Failed to create team: " + error.message);
+    } finally {
+      setCreateTeamLoading(false);
+    }
+  };
+
+  const toggleMemberSelection = (studentId: string) => {
+    setSelectedMembers(prev => {
+      // If already selected, remove it
+      if (prev.includes(studentId)) {
+        // If this was the leader, clear the leader selection
+        if (selectedLeader === studentId) {
+          setSelectedLeader("");
+        }
+        return prev.filter(id => id !== studentId);
+      } 
+      // If not selected and we're under the limit, add it
+      else if (prev.length < 5) {
+        return [...prev, studentId];
+      }
+      // If we're at the limit, show a toast and don't change
+      else {
+        toast.error("Maximum 5 members allowed per team");
+        return prev;
+      }
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -129,10 +235,15 @@ export const TeamsTab = () => {
             <CardTitle>Teams Management</CardTitle>
             <CardDescription>View and manage teams</CardDescription>
           </div>
-          <Button onClick={() => fetchData()} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowCreateTeamDialog(true)} variant="default" size="sm">
+              Create Team
+            </Button>
+            <Button onClick={() => fetchData()} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -207,6 +318,100 @@ export const TeamsTab = () => {
           </div>
         )}
       </CardContent>
+
+      {/* Create Team Dialog */}
+      <Dialog open={showCreateTeamDialog} onOpenChange={setShowCreateTeamDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Team</DialogTitle>
+            <DialogDescription>
+              Create a new team with up to 5 members.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="team-name">Team Name</Label>
+              <Input 
+                id="team-name" 
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+                placeholder="Enter team name"
+              />
+            </div>
+
+            {selectedMembers.length >= 5 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Maximum 5 members allowed per team
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label>Select Team Members (Max 5)</Label>
+              <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
+                {students.map((student) => (
+                  <div key={student.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`student-${student.id}`}
+                      checked={selectedMembers.includes(student.id)}
+                      onCheckedChange={() => toggleMemberSelection(student.id)}
+                      disabled={selectedMembers.length >= 5 && !selectedMembers.includes(student.id)}
+                    />
+                    <label 
+                      htmlFor={`student-${student.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {student.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedMembers.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="team-leader">Team Leader</Label>
+                <Select
+                  value={selectedLeader}
+                  onValueChange={setSelectedLeader}
+                >
+                  <SelectTrigger id="team-leader">
+                    <SelectValue placeholder="Select team leader" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students
+                      .filter(student => selectedMembers.includes(student.id))
+                      .map((student) => (
+                        <SelectItem key={student.id} value={student.id}>
+                          {student.name}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCreateTeamDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateTeam}
+              disabled={createTeamLoading || !newTeamName || selectedMembers.length === 0 || !selectedLeader}
+            >
+              {createTeamLoading ? "Creating..." : "Create Team"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
