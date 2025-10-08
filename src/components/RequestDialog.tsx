@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Team {
   id: string;
@@ -34,9 +37,28 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
   const [newTeamName, setNewTeamName] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const availableTeams = teams.filter(t => t.members.length < 5);
   const freeStudents = students.filter(s => s.status === 'free');
+
+  const toggleMemberSelection = (studentId: string) => {
+    setSelectedMembers(prev => {
+      // If already selected, remove it
+      if (prev.includes(studentId)) {
+        return prev.filter(id => id !== studentId);
+      }
+      
+      // If not selected and we haven't reached the limit, add it
+      if (prev.length < 4 ) { // Changed from 5 to 4 since we're adding one more
+        return [...prev, studentId];
+      }
+      
+      // If we've reached the limit, show a toast and don't change
+      toast.error("You can select a maximum of 5 members");
+      return prev;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,33 +73,64 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
       return;
     }
 
-    if (requestType === "create" && !newTeamName.trim()) {
-      toast.error("Please enter a team name");
-      return;
+    if (requestType === "create") {
+      if (!newTeamName.trim()) {
+        toast.error("Please enter a team name");
+        return;
+      }
+      
+      if (selectedMembers.length === 0) {
+        toast.error("Please select at least one team member");
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
-      const requestData = {
-        student_id: selectedStudent,
-        type: requestType,
-        message: message.trim() || null,
-        team_id: requestType === "join" ? selectedTeam : null,
-        team_name: requestType === "create" ? newTeamName.trim() : null
-      };
+      if (requestType === "join") {
+        const requestData = {
+          student_id: selectedStudent,
+          type: requestType,
+          message: message.trim() || null,
+          team_id: selectedTeam,
+          team_name: null
+        };
 
-      const { error } = await supabase
-        .from('requests')
-        .insert([requestData]);
+        const { error } = await supabase
+          .from('requests')
+          .insert([requestData]);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Update student status to pending
-      await supabase
-        .from('students')
-        .update({ status: 'pending' })
-        .eq('id', selectedStudent);
+        // Update student status to pending
+        await supabase
+          .from('students')
+          .update({ status: 'pending' })
+          .eq('id', selectedStudent);
+      } else {
+        // For create team with multiple members
+        const requestData = {
+          student_id: selectedStudent,
+          type: requestType,
+          message: message.trim() || null,
+          team_id: null,
+          team_name: newTeamName.trim(),
+          selected_members: selectedMembers
+        };
+
+        const { error } = await supabase
+          .from('requests')
+          .insert([requestData]);
+
+        if (error) throw error;
+
+        // Update student status to pending
+        await supabase
+          .from('students')
+          .update({ status: 'pending' })
+          .eq('id', selectedStudent);
+      }
 
       toast.success(`Request submitted successfully! Waiting for admin approval.`);
       
@@ -86,6 +139,7 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
       setSelectedTeam("");
       setNewTeamName("");
       setMessage("");
+      setSelectedMembers([]);
       onOpenChange(false);
     } catch (error: any) {
       toast.error("Failed to submit request: " + error.message);
@@ -159,15 +213,55 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
               </Select>
             </div>
           ) : (
-            <div className="space-y-2">
-              <Label htmlFor="teamName">Team Name</Label>
-              <Input
-                id="teamName"
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder="e.g., SRL Champions"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="teamName">Team Name</Label>
+                <Input
+                  id="teamName"
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  placeholder="e.g., SRL Champions"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Select Team Members (Max 5)</Label>
+                <div className="border rounded-md p-3 space-y-2">
+                  {selectedMembers.length === 5 && (
+                    <Alert variant="warning" className="mb-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Maximum 5 members reached
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <div className="max-h-40 overflow-y-auto pr-2">
+                    <div className="grid grid-cols-1 gap-2">
+                      {freeStudents.map(student => (
+                        <div key={student.id} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`student-${student.id}`}
+                            checked={selectedMembers.includes(student.id)}
+                            onCheckedChange={() => toggleMemberSelection(student.id)}
+                          />
+                          <Label 
+                            htmlFor={`student-${student.id}`}
+                            className="cursor-pointer"
+                          >
+                            {student.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground mt-2">
+                    Selected: {selectedMembers.length}/5 members
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Message */}
