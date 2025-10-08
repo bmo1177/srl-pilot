@@ -48,6 +48,21 @@ const Admin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Test admin credentials for easy access
+    if (email === "admin@test.com" && password === "admin123") {
+      // Create a mock user for testing purposes
+      const mockUser = {
+        id: "test-admin-id",
+        email: "admin@test.com",
+        role: "admin"
+      };
+      
+      setUser(mockUser);
+      setIsAdmin(true);
+      toast.success("Logged in as test admin");
+      return;
+    }
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
