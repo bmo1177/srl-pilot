@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Star, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { RequestDialog } from "@/components/RequestDialog";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface Student {
   id: string;
@@ -28,10 +27,10 @@ interface Team {
 }
 
 const Teams = () => {
+  const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showRequestDialog, setShowRequestDialog] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -127,38 +126,28 @@ const Teams = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link to="/">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              TP Teams
-            </h1>
-          </Link>
-          <div className="flex gap-2">
-            <Button onClick={() => setShowRequestDialog(true)} className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              Join / Create Team
-            </Button>
-            <Link to="/admin">
-              <Button variant="outline">Admin</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Teams Grid */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold mb-2">All Teams</h2>
-          <p className="text-muted-foreground">Browse and join teams for the Mobile Development TP</p>
+    <div className="min-h-[calc(100vh-8rem)] py-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="glass-strong rounded-2xl p-8 border border-primary/20 mb-8">
+          <h1 className="text-4xl font-bold gradient-text mb-4">All Teams</h1>
+          <p className="text-lg text-muted-foreground mb-6">
+            Browse existing teams or create your own for the Mobile Development TP
+          </p>
+          <Button 
+            onClick={() => navigate("/request")}
+            size="lg"
+            className="bg-gradient-to-r from-primary via-accent to-secondary hover:shadow-lg hover:shadow-primary/30 transition-smooth"
+          >
+            <UserPlus className="mr-2 h-5 w-5" />
+            Submit Team Request
+          </Button>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <Card key={i} className="p-6 animate-pulse">
+              <Card key={i} className="glass p-6 animate-pulse border border-primary/20">
                 <div className="h-6 bg-muted rounded mb-4" />
                 <div className="h-4 bg-muted rounded mb-2" />
                 <div className="h-4 bg-muted rounded w-2/3" />
@@ -166,16 +155,18 @@ const Teams = () => {
             ))}
           </div>
         ) : teams.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <Card className="glass-strong p-12 text-center border border-primary/20">
+            <Users className="h-12 w-12 mx-auto mb-4 text-primary" />
             <h3 className="text-xl font-semibold mb-2">No teams yet</h3>
             <p className="text-muted-foreground mb-4">Be the first to create a team!</p>
-            <Button onClick={() => setShowRequestDialog(true)}>Create Team</Button>
+            <Button onClick={() => navigate("/request")} className="bg-gradient-to-r from-primary to-accent">
+              Create Team
+            </Button>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {teams.map(team => (
-              <Card key={team.id} className="p-6 hover:shadow-lg transition-shadow">
+              <Card key={team.id} className="glass-strong p-6 hover:shadow-xl transition-all border border-primary/20 hover:border-primary/40 hover:scale-105">
                 {/* Team Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -241,14 +232,7 @@ const Teams = () => {
             ))}
           </div>
         )}
-      </main>
-
-      <RequestDialog 
-        open={showRequestDialog} 
-        onOpenChange={setShowRequestDialog}
-        teams={teams}
-        students={students}
-      />
+      </div>
     </div>
   );
 };
