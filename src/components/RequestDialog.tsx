@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
+import { UserPlus, Users, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Team {
@@ -150,137 +150,194 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Join or Create a Team</DialogTitle>
-          <DialogDescription>
-            Submit a request to join an existing team or create a new one
+      <DialogContent className="sm:max-w-lg glass-strong border-primary/20 backdrop-blur-xl">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-2xl font-bold gradient-text flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" />
+            Team Request
+          </DialogTitle>
+          <DialogDescription className="text-base">
+            Join an existing team or create your own with autonomy and responsibility
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {/* Student Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="student">Your Name</Label>
+          <div className="space-y-2 transition-smooth">
+            <Label htmlFor="student" className="text-sm font-semibold">Your Name</Label>
             <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-              <SelectTrigger>
+              <SelectTrigger className="glass border-primary/20 hover:border-primary/40 transition-smooth">
                 <SelectValue placeholder="Select your name" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-strong border-primary/20">
                 {freeStudents.map(student => (
-                  <SelectItem key={student.id} value={student.id}>
+                  <SelectItem key={student.id} value={student.id} className="hover:bg-primary/10">
                     {student.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {freeStudents.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No available students. Contact admin to add you to the system.
-              </p>
+              <Alert className="glass border-destructive/30">
+                <AlertDescription className="text-sm">
+                  No available students. Contact admin to add you to the system.
+                </AlertDescription>
+              </Alert>
             )}
           </div>
 
-          {/* Request Type */}
-          <div className="space-y-2">
-            <Label>Request Type</Label>
-            <Select value={requestType} onValueChange={(val) => setRequestType(val as "join" | "create")}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="join">Join Existing Team</SelectItem>
-                <SelectItem value="create">Create New Team</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Request Type - Modern Toggle Style */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Request Type</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setRequestType("join");
+                  setSelectedMembers([]);
+                  setNewTeamName("");
+                }}
+                className={`p-4 rounded-xl border-2 transition-smooth flex flex-col items-center gap-2 ${
+                  requestType === "join"
+                    ? "glass-strong border-primary shadow-lg shadow-primary/20"
+                    : "glass border-border hover:border-primary/40"
+                }`}
+              >
+                <UserPlus className={`h-6 w-6 ${requestType === "join" ? "text-primary" : "text-muted-foreground"}`} />
+                <span className={`text-sm font-medium ${requestType === "join" ? "text-primary" : ""}`}>
+                  Join Team
+                </span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setRequestType("create");
+                  setSelectedTeam("");
+                }}
+                className={`p-4 rounded-xl border-2 transition-smooth flex flex-col items-center gap-2 ${
+                  requestType === "create"
+                    ? "glass-strong border-primary shadow-lg shadow-primary/20"
+                    : "glass border-border hover:border-primary/40"
+                }`}
+              >
+                <Users className={`h-6 w-6 ${requestType === "create" ? "text-primary" : "text-muted-foreground"}`} />
+                <span className={`text-sm font-medium ${requestType === "create" ? "text-primary" : ""}`}>
+                  Create Team
+                </span>
+              </button>
+            </div>
           </div>
 
-          {/* Conditional Fields */}
-          {requestType === "join" ? (
-            <div className="space-y-2">
-              <Label htmlFor="team">Select Team</Label>
-              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a team" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTeams.map(team => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name} ({team.members.length}/5)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="teamName">Team Name</Label>
-                <Input
-                  id="teamName"
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                  placeholder="e.g., SRL Champions"
-                />
+          {/* Conditional Fields with Smooth Transitions */}
+          <div className="animate-fade-in">
+            {requestType === "join" ? (
+              <div className="space-y-2 transition-smooth">
+                <Label htmlFor="team" className="text-sm font-semibold">Select Team</Label>
+                <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                  <SelectTrigger className="glass border-primary/20 hover:border-primary/40 transition-smooth">
+                    <SelectValue placeholder="Choose a team" />
+                  </SelectTrigger>
+                  <SelectContent className="glass-strong border-primary/20">
+                    {availableTeams.map(team => (
+                      <SelectItem key={team.id} value={team.id} className="hover:bg-primary/10">
+                        {team.name} ({team.members.length}/5 members)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableTeams.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No teams available. Create a new team instead.
+                  </p>
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <Label>Select Team Members (Max 5)</Label>
-                <div className="border rounded-md p-3 space-y-2">
-                  {selectedMembers.length === 5 && (
-                    <Alert variant="warning" className="mb-2">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Maximum 5 members reached
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <div className="max-h-40 overflow-y-auto pr-2">
-                    <div className="grid grid-cols-1 gap-2">
-                      {freeStudents.map(student => (
-                        <div key={student.id} className="flex items-center space-x-2">
+            ) : (
+              <div className="space-y-4 transition-smooth">
+                <div className="space-y-2">
+                  <Label htmlFor="teamName" className="text-sm font-semibold">Team Name</Label>
+                  <Input
+                    id="teamName"
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    placeholder="e.g., SRL Champions"
+                    className="glass border-primary/20 hover:border-primary/40 focus:border-primary transition-smooth"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">
+                    Select Team Members <span className="text-xs text-muted-foreground">(1-4 members, max 5 total)</span>
+                  </Label>
+                  <div className="glass rounded-xl p-4 space-y-3 border border-primary/20">
+                    {selectedMembers.length >= 4 && (
+                      <Alert className="glass-strong border-accent/40 bg-accent/5">
+                        <AlertDescription className="text-sm flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-accent" />
+                          Maximum 5 members including you
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    <div className="max-h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                      {freeStudents.filter(s => s.id !== selectedStudent).map(student => (
+                        <div 
+                          key={student.id} 
+                          className="flex items-center space-x-3 p-2 rounded-lg glass hover:glass-strong transition-smooth cursor-pointer"
+                          onClick={() => toggleMemberSelection(student.id)}
+                        >
                           <Checkbox 
                             id={`student-${student.id}`}
                             checked={selectedMembers.includes(student.id)}
                             onCheckedChange={() => toggleMemberSelection(student.id)}
+                            className="border-primary/40"
                           />
                           <Label 
                             htmlFor={`student-${student.id}`}
-                            className="cursor-pointer"
+                            className="cursor-pointer flex-1 text-sm"
                           >
                             {student.name}
                           </Label>
                         </div>
                       ))}
                     </div>
-                  </div>
-                  
-                  <div className="text-sm text-muted-foreground mt-2">
-                    Selected: {selectedMembers.length}/5 members
+                    
+                    <div className="text-sm font-medium text-primary pt-2 border-t border-border/50">
+                      Selected: {selectedMembers.length + 1}/5 members (including you)
+                    </div>
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
 
           {/* Message */}
-          <div className="space-y-2">
-            <Label htmlFor="message">Message (Optional)</Label>
+          <div className="space-y-2 transition-smooth">
+            <Label htmlFor="message" className="text-sm font-semibold">Message (Optional)</Label>
             <Textarea
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Tell the admin why you want to join/create this team..."
+              placeholder="Share your motivation or goals for this team..."
               rows={3}
+              className="glass border-primary/20 hover:border-primary/40 focus:border-primary transition-smooth resize-none"
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+          <div className="flex gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)} 
+              className="flex-1 glass border-border hover:border-primary/40 transition-smooth"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="flex-1 bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 transition-smooth"
+            >
               {loading ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
