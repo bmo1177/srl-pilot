@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,8 +63,20 @@ export default function RequestForm() {
     }
   };
 
-  const availableTeams = teams.filter(t => t.members.length < 5);
-  const freeStudents = students.filter(s => s.status === 'free');
+  const availableTeams = useMemo(() => 
+    teams.filter(t => t.members.length < 5), 
+    [teams]
+  );
+  
+  const freeStudents = useMemo(() => 
+    students.filter(s => s.status === 'free'), 
+    [students]
+  );
+  
+  const availableMembersForTeam = useMemo(() => 
+    freeStudents.filter(s => s.id !== selectedStudent),
+    [freeStudents, selectedStudent]
+  );
 
   const toggleMemberSelection = (studentId: string) => {
     setSelectedMembers(prev => {
@@ -323,7 +335,7 @@ export default function RequestForm() {
                   )}
                   
                   <div className="max-h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    {freeStudents.filter(s => s.id !== selectedStudent).map(student => (
+                    {availableMembersForTeam.map(student => (
                       <div 
                         key={student.id} 
                         className="flex items-center space-x-3 p-3 rounded-lg glass hover:glass-strong transition-smooth cursor-pointer"
