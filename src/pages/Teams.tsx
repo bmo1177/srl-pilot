@@ -11,7 +11,8 @@ import { useNavigate } from "react-router-dom";
 interface Student {
   id: string;
   name: string;
-  email: string;
+  university_email: string;
+  personal_email?: string;
   status: string;
 }
 
@@ -145,7 +146,7 @@ const Teams = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
             {[1, 2, 3].map(i => (
               <Card key={i} className="glass p-6 animate-pulse border border-primary/20">
                 <div className="h-6 bg-muted rounded mb-4" />
@@ -164,7 +165,7 @@ const Teams = () => {
             </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
             {teams.map(team => (
               <Card key={team.id} className="glass-strong p-6 hover:shadow-xl transition-all border border-primary/20 hover:border-primary/40 hover:scale-105">
                 {/* Team Header */}

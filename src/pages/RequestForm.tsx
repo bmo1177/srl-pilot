@@ -20,6 +20,8 @@ interface Team {
 interface Student {
   id: string;
   name: string;
+  university_email: string;
+  personal_email?: string;
   status: string;
 }
 

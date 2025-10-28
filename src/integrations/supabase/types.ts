@@ -38,6 +38,24 @@ export type Database = {
         }
         Relationships: []
       }
+      admins: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       duaas: {
         Row: {
           author_name: string | null
@@ -181,26 +199,29 @@ export type Database = {
       students: {
         Row: {
           created_at: string
-          email: string
           id: string
           name: string
+          personal_email: string | null
           status: string
+          university_email: string
           updated_at: string
         }
         Insert: {
           created_at?: string
-          email: string
           id?: string
           name: string
+          personal_email?: string | null
           status?: string
+          university_email?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
-          email?: string
           id?: string
           name?: string
+          personal_email?: string | null
           status?: string
+          university_email?: string
           updated_at?: string
         }
         Relationships: []
@@ -284,10 +305,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

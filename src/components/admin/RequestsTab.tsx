@@ -16,11 +16,11 @@ interface Request {
   message: string | null;
   team_name: string | null;
   created_at: string;
-  student?: {
+  students?: {
     name: string;
-    email: string;
+    university_email: string;
   };
-  team?: {
+  teams?: {
     name: string;
   };
 }
@@ -46,34 +46,17 @@ export const RequestsTab = () => {
 
   const fetchRequests = async () => {
     try {
-      const { data: requestsData, error: requestsError } = await supabase
+      const { data, error } = await supabase
         .from('requests')
-        .select('*')
+        .select(`
+          *,
+          students (name, university_email),
+          teams (name)
+        `)
         .order('created_at', { ascending: false });
 
-      if (requestsError) throw requestsError;
-
-      // Fetch related data
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('students')
-        .select('id, name, email');
-
-      if (studentsError) throw studentsError;
-
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
-        .select('id, name');
-
-      if (teamsError) throw teamsError;
-
-      // Enrich requests
-      const enrichedRequests = (requestsData || []).map(request => ({
-        ...request,
-        student: studentsData?.find(s => s.id === request.student_id),
-        team: request.team_id ? teamsData?.find(t => t.id === request.team_id) : undefined
-      }));
-
-      setRequests(enrichedRequests);
+      if (error) throw error;
+      setRequests(data || []);
     } catch (error: any) {
       toast.error("Failed to load requests: " + error.message);
     } finally {
@@ -81,8 +64,11 @@ export const RequestsTab = () => {
     }
   };
 
-  const handleApproveRequest = async (request: Request) => {
+  const handleApprove = async (requestId: string) => {
     try {
+      const request = requests.find(r => r.id === requestId);
+      if (!request) return;
+
       if (request.type === "create") {
         // Create new team
         const { data: newTeam, error: teamError } = await supabase
@@ -122,7 +108,7 @@ export const RequestsTab = () => {
       const { error: requestError } = await supabase
         .from('requests')
         .update({ status: 'approved' })
-        .eq('id', request.id);
+        .eq('id', requestId);
 
       if (requestError) throw requestError;
 
@@ -140,8 +126,11 @@ export const RequestsTab = () => {
     }
   };
 
-  const handleDenyRequest = async (requestId: string, studentId: string) => {
+  const handleDeny = async (requestId: string) => {
     try {
+      const request = requests.find(r => r.id === requestId);
+      if (!request) return;
+
       // Update request status
       const { error: requestError } = await supabase
         .from('requests')
@@ -154,7 +143,7 @@ export const RequestsTab = () => {
       const { error: studentError } = await supabase
         .from('students')
         .update({ status: 'free' })
-        .eq('id', studentId);
+        .eq('id', request.student_id);
 
       if (studentError) throw studentError;
 
@@ -164,139 +153,106 @@ export const RequestsTab = () => {
     }
   };
 
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const processedRequests = requests.filter(r => r.status !== 'pending');
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive"> = {
+      pending: "secondary",
+      approved: "default",
+      denied: "destructive"
+    };
+    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Pending Requests */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Pending Requests</CardTitle>
-              <CardDescription>Review and approve/deny team requests</CardDescription>
-            </div>
-            <Button onClick={() => fetchRequests()} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <CardTitle>Requests Management</CardTitle>
+            <CardDescription>Review and manage team requests</CardDescription>
           </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p>Loading requests...</p>
-          ) : pendingRequests.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No pending requests</p>
-          ) : (
+          <Button onClick={() => fetchRequests()} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-center py-8">Loading requests...</p>
+        ) : requests.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No requests yet</p>
+        ) : (
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Student</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Message</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead className="hidden md:table-cell">Team</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden lg:table-cell">Message</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pendingRequests.map((request) => (
+                {requests.map((request) => (
                   <TableRow key={request.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{request.student?.name}</p>
-                        <p className="text-sm text-muted-foreground">{request.student?.email}</p>
+                    <TableCell className="font-medium">
+                      <div className="flex flex-col">
+                        <span>{request.students?.name || 'Unknown'}</span>
+                        <Badge 
+                          variant={request.type === 'join' ? 'default' : 'secondary'}
+                          className="sm:hidden w-fit mt-1"
+                        >
+                          {request.type}
+                        </Badge>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={request.type === 'create' ? 'default' : 'secondary'}>
-                        {request.type === 'create' ? 'Create Team' : 'Join Team'}
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant={request.type === 'join' ? 'default' : 'secondary'}>
+                        {request.type}
                       </Badge>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {request.type === 'join' 
+                        ? (request.teams?.name || 'Unknown Team')
+                        : (request.team_name || 'New Team')
+                      }
+                    </TableCell>
+                    <TableCell>{getStatusBadge(request.status)}</TableCell>
+                    <TableCell className="hidden lg:table-cell max-w-xs truncate">
+                      {request.message || '-'}
+                    </TableCell>
                     <TableCell>
-                      {request.type === 'create' ? (
-                        <span className="font-medium">{request.team_name}</span>
-                      ) : (
-                        <span>{request.team?.name}</span>
+                      {request.status === 'pending' && (
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(request.id)}
+                            className="w-full sm:w-auto"
+                          >
+                            <Check className="h-3 w-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Approve</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeny(request.id)}
+                            className="w-full sm:w-auto"
+                          >
+                            <X className="h-3 w-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Deny</span>
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <p className="text-sm text-muted-foreground max-w-xs truncate">
-                        {request.message || '-'}
-                      </p>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          onClick={() => handleApproveRequest(request)}
-                          size="sm"
-                          className="gap-1"
-                        >
-                          <Check className="h-3 w-3" />
-                          Approve
-                        </Button>
-                        <Button
-                          onClick={() => handleDenyRequest(request.id, request.student_id)}
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                        >
-                          <X className="h-3 w-3" />
-                          Deny
-                        </Button>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Processed Requests */}
-      {processedRequests.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Request History</CardTitle>
-            <CardDescription>Previously processed requests</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {processedRequests.slice(0, 10).map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>{request.student?.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{request.type}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {request.type === 'create' ? request.team_name : request.team?.name}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={request.status === 'approved' ? 'default' : 'destructive'}>
-                        {request.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(request.created_at).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

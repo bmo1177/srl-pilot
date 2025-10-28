@@ -9,26 +9,26 @@ const Index = () => {
   return (
     <div className="min-h-[calc(100vh-8rem)]">
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center py-12">
+      <section className="relative min-h-[60vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-6xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 mb-4">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Self-Responsible Learning Platform</span>
+            <span className="text-xs sm:text-sm font-medium">Self-Responsible Learning Platform</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold gradient-text">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold gradient-text">
             TP Teams Platform
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto px-4">
             Build your mobile learning app with <strong>Autonomy</strong>, <strong>Responsibility</strong>, and <strong>Planning</strong>
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 px-4">
             <Button 
               onClick={() => navigate("/teams")}
               size="lg"
-              className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 transition-smooth text-lg px-8"
+              className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 transition-smooth text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto"
             >
               <Users className="mr-2 h-5 w-5" />
               View All Teams
@@ -37,7 +37,7 @@ const Index = () => {
               onClick={() => navigate("/request")}
               size="lg"
               variant="outline"
-              className="glass border-primary/30 hover:border-primary transition-smooth text-lg px-8"
+              className="glass border-primary/30 hover:border-primary transition-smooth text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto"
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Join/Create Team
@@ -47,16 +47,16 @@ const Index = () => {
       </section>
 
       {/* SRL Values Section */}
-      <section className="py-16">
+      <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 gradient-text">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-4 gradient-text">
             SRL Core Values
           </h2>
-          <p className="text-center text-muted-foreground mb-12">
+          <p className="text-center text-muted-foreground mb-12 text-sm sm:text-base">
             Self-Responsible Learning principles that guide this project
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             <Card className="glass-strong p-6 hover:shadow-xl transition-all border-primary/20 hover:border-primary/40 hover:scale-105">
               <div className="mb-4 w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                 <Target className="h-6 w-6 text-primary" />
@@ -91,9 +91,9 @@ const Index = () => {
       </section>
 
       {/* Project Overview */}
-      <section className="py-16">
+      <section className="py-16 px-4">
         <div className="max-w-3xl mx-auto">
-          <Card className="glass-strong p-8 border border-primary/20">
+          <Card className="glass-strong p-6 sm:p-8 border border-primary/20">
             <h2 className="text-2xl font-bold mb-4 gradient-text">About This TP</h2>
             <p className="text-muted-foreground mb-4">
               This practical work focuses on developing a mobile learning application that embodies 

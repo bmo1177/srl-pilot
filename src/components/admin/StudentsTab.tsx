@@ -13,7 +13,8 @@ import { Plus, Trash2, RefreshCw } from "lucide-react";
 interface Student {
   id: string;
   name: string;
-  email: string;
+  university_email: string;
+  personal_email?: string;
   status: string;
   created_at: string;
 }
@@ -22,7 +23,11 @@ export const StudentsTab = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newStudent, setNewStudent] = useState({ name: "", email: "" });
+  const [newStudent, setNewStudent] = useState({ 
+    name: "", 
+    university_email: "", 
+    personal_email: "" 
+  });
 
   useEffect(() => {
     fetchStudents();
@@ -63,14 +68,15 @@ export const StudentsTab = () => {
         .from('students')
         .insert([{
           name: newStudent.name.trim(),
-          email: newStudent.email.trim().toLowerCase(),
+          university_email: newStudent.university_email.trim().toLowerCase(),
+          personal_email: newStudent.personal_email.trim() || null,
           status: 'free'
         }]);
 
       if (error) throw error;
 
       toast.success("Student added successfully");
-      setNewStudent({ name: "", email: "" });
+      setNewStudent({ name: "", university_email: "", personal_email: "" });
       setShowAddDialog(false);
     } catch (error: any) {
       toast.error("Failed to add student: " + error.message);
@@ -106,24 +112,24 @@ export const StudentsTab = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <CardTitle>Students Management</CardTitle>
             <CardDescription>Add, view, and manage students</CardDescription>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => fetchStudents()} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button onClick={() => fetchStudents()} variant="outline" size="sm" className="flex-1 sm:flex-initial">
+              <RefreshCw className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 flex-1 sm:flex-initial">
                   <Plus className="h-4 w-4" />
-                  Add Student
+                  <span className="hidden sm:inline">Add Student</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[500px] mx-4">
                 <DialogHeader>
                   <DialogTitle>Add New Student</DialogTitle>
                   <DialogDescription>Enter student information</DialogDescription>
@@ -139,13 +145,24 @@ export const StudentsTab = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="university_email">University Email</Label>
                     <Input
-                      id="email"
+                      id="university_email"
                       type="email"
-                      value={newStudent.email}
-                      onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                      placeholder="student@univ-tiaret.dz"
+                      value={newStudent.university_email}
+                      onChange={(e) => setNewStudent({ ...newStudent, university_email: e.target.value })}
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="personal_email">Personal Email (Optional)</Label>
+                    <Input
+                      id="personal_email"
+                      type="email"
+                      placeholder="personal@gmail.com"
+                      value={newStudent.personal_email}
+                      onChange={(e) => setNewStudent({ ...newStudent, personal_email: e.target.value })}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -162,39 +179,50 @@ export const StudentsTab = () => {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p>Loading students...</p>
+          <p className="text-center py-8">Loading students...</p>
         ) : students.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">No students yet</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell className="font-medium">{student.name}</TableCell>
-                  <TableCell>{student.email}</TableCell>
-                  <TableCell>{getStatusBadge(student.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      onClick={() => handleDeleteStudent(student.id)}
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="hidden sm:table-cell">University Email</TableHead>
+                  <TableHead className="hidden md:table-cell">Personal Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {students.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex flex-col">
+                        <span>{student.name}</span>
+                        <span className="text-xs text-muted-foreground sm:hidden">{student.university_email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell text-sm">{student.university_email}</TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                      {student.personal_email || '-'}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(student.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        onClick={() => handleDeleteStudent(student.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
