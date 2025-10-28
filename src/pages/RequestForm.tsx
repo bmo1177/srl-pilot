@@ -338,14 +338,13 @@ export default function RequestForm() {
                     {availableMembersForTeam.map(student => (
                       <div 
                         key={student.id} 
-                        className="flex items-center space-x-3 p-3 rounded-lg glass hover:glass-strong transition-smooth cursor-pointer"
-                        onClick={() => toggleMemberSelection(student.id)}
+                        className="flex items-center space-x-3 p-3 rounded-lg glass hover:glass-strong transition-smooth"
                       >
                         <Checkbox 
                           id={`student-${student.id}`}
                           checked={selectedMembers.includes(student.id)}
                           onCheckedChange={() => toggleMemberSelection(student.id)}
-                          className="border-primary/40"
+                          className="border-primary/40 cursor-pointer"
                         />
                         <Label 
                           htmlFor={`student-${student.id}`}
