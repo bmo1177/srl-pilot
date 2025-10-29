@@ -16,6 +16,8 @@ interface Request {
   message: string | null;
   team_name: string | null;
   created_at: string;
+  selected_members?: string[];
+  logo_url?: string;
   students?: {
     name: string;
     university_email: string;
@@ -56,7 +58,16 @@ export const RequestsTab = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      
+      // Cast selected_members from Json to string[]
+      const typedRequests = (data || []).map(req => ({
+        ...req,
+        selected_members: Array.isArray(req.selected_members) 
+          ? req.selected_members as string[]
+          : undefined
+      }));
+      
+      setRequests(typedRequests);
     } catch (error: any) {
       toast.error("Failed to load requests: " + error.message);
     } finally {
@@ -70,35 +81,61 @@ export const RequestsTab = () => {
       if (!request) return;
 
       if (request.type === "create") {
-        // Create new team
+        // Create new team with logo
         const { data: newTeam, error: teamError } = await supabase
           .from('teams')
           .insert([{
             name: request.team_name,
             leader_id: request.student_id,
-            status: 'active'
+            status: 'active',
+            logo_url: request.logo_url || null
           }])
           .select()
           .single();
 
         if (teamError) throw teamError;
 
-        // Add student to team members
-        const { error: memberError } = await supabase
+        // Add team leader as member with Leader role
+        const { error: leaderError } = await supabase
           .from('team_members')
           .insert([{
             team_id: newTeam.id,
-            student_id: request.student_id
+            student_id: request.student_id,
+            role: 'Leader'
           }]);
 
-        if (memberError) throw memberError;
+        if (leaderError) throw leaderError;
+
+        // Add selected members if any
+        if (request.selected_members && request.selected_members.length > 0) {
+          const memberInserts = request.selected_members.map(memberId => ({
+            team_id: newTeam.id,
+            student_id: memberId,
+            role: 'Member'
+          }));
+
+          const { error: membersError } = await supabase
+            .from('team_members')
+            .insert(memberInserts);
+
+          if (membersError) throw membersError;
+
+          // Update all selected members status to in_team
+          const { error: updateMembersError } = await supabase
+            .from('students')
+            .update({ status: 'in_team' })
+            .in('id', request.selected_members);
+
+          if (updateMembersError) throw updateMembersError;
+        }
       } else if (request.type === "join" && request.team_id) {
         // Add student to existing team
         const { error: memberError } = await supabase
           .from('team_members')
           .insert([{
             team_id: request.team_id,
-            student_id: request.student_id
+            student_id: request.student_id,
+            role: 'Member'
           }]);
 
         if (memberError) throw memberError;

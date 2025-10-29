@@ -150,6 +150,7 @@ export type Database = {
           created_at: string
           id: string
           message: string | null
+          selected_members: Json | null
           status: string
           student_id: string
           team_id: string | null
@@ -161,6 +162,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string | null
+          selected_members?: Json | null
           status?: string
           student_id: string
           team_id?: string | null
@@ -172,6 +174,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string | null
+          selected_members?: Json | null
           status?: string
           student_id?: string
           team_id?: string | null
@@ -230,18 +233,21 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
+          role: string | null
           student_id: string
           team_id: string
         }
         Insert: {
           id?: string
           joined_at?: string
+          role?: string | null
           student_id: string
           team_id: string
         }
         Update: {
           id?: string
           joined_at?: string
+          role?: string | null
           student_id?: string
           team_id?: string
         }
@@ -268,6 +274,7 @@ export type Database = {
           created_at: string
           id: string
           leader_id: string | null
+          logo_url: string | null
           name: string
           status: string
           updated_at: string
@@ -277,6 +284,7 @@ export type Database = {
           created_at?: string
           id?: string
           leader_id?: string | null
+          logo_url?: string | null
           name: string
           status?: string
           updated_at?: string
@@ -286,6 +294,7 @@ export type Database = {
           created_at?: string
           id?: string
           leader_id?: string | null
+          logo_url?: string | null
           name?: string
           status?: string
           updated_at?: string

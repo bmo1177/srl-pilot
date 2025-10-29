@@ -2,35 +2,34 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Star, Users, UserPlus } from "lucide-react";
+import { Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { TeamCard } from "@/components/TeamCard";
 
-interface Student {
+interface TeamMember {
   id: string;
-  name: string;
-  university_email: string;
-  personal_email?: string;
-  status: string;
+  student_id: string;
+  role?: string;
+  students?: {
+    name: string;
+  };
 }
 
 interface Team {
   id: string;
   name: string;
+  logo_url?: string;
   leader_id: string;
   status: string;
   charter: string | null;
-  leader?: Student;
-  members: Student[];
+  members: TeamMember[];
   pendingCount: number;
 }
 
 const Teams = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,30 +56,22 @@ const Teams = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch teams with members
+      // Fetch teams with members and their roles
       const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
-        .select('*')
+        .select(`
+          *,
+          team_members(
+            id,
+            student_id,
+            role,
+            students(name)
+          )
+        `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (teamsError) throw teamsError;
-
-      // Fetch all students
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('students')
-        .select('*');
-
-      if (studentsError) throw studentsError;
-
-      setStudents(studentsData || []);
-
-      // Fetch team members
-      const { data: membersData, error: membersError } = await supabase
-        .from('team_members')
-        .select('team_id, student_id');
-
-      if (membersError) throw membersError;
 
       // Fetch pending requests count
       const { data: requestsData, error: requestsError } = await supabase
@@ -92,18 +83,11 @@ const Teams = () => {
 
       // Combine data
       const enrichedTeams = (teamsData || []).map(team => {
-        const teamMembers = membersData
-          ?.filter(m => m.team_id === team.id)
-          .map(m => studentsData?.find(s => s.id === m.student_id))
-          .filter(Boolean) as Student[];
-
-        const leader = studentsData?.find(s => s.id === team.leader_id);
         const pendingCount = requestsData?.filter(r => r.team_id === team.id).length || 0;
 
         return {
           ...team,
-          leader,
-          members: teamMembers,
+          members: team.team_members || [],
           pendingCount
         };
       });
@@ -114,16 +98,6 @@ const Teams = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getStatusBadge = (memberCount: number, pendingCount: number) => {
-    if (memberCount >= 5) {
-      return <Badge variant="secondary">Full (5/5)</Badge>;
-    }
-    if (memberCount >= 3) {
-      return <Badge className="bg-primary text-primary-foreground">Active ({memberCount}/5)</Badge>;
-    }
-    return <Badge variant="outline">Forming ({memberCount}/5)</Badge>;
   };
 
   return (
@@ -167,69 +141,15 @@ const Teams = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
             {teams.map(team => (
-              <Card key={team.id} className="glass-strong p-6 hover:shadow-xl transition-all border border-primary/20 hover:border-primary/40 hover:scale-105">
-                {/* Team Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold mb-1">{team.name}</h3>
-                    {getStatusBadge(team.members.length, team.pendingCount)}
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Members</span>
-                    <span className="font-medium">{team.members.length}/5</span>
-                  </div>
-                  <Progress value={(team.members.length / 5) * 100} className="h-2" />
-                </div>
-
-                {/* Leader */}
-                {team.leader && (
-                  <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 fill-accent text-accent" />
-                      <span className="font-semibold text-sm">Team Leader</span>
-                    </div>
-                    <p className="text-sm mt-1">{team.leader.name}</p>
-                  </div>
-                )}
-
-                {/* Members List */}
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Members
-                  </h4>
-                  <ul className="space-y-1">
-                    {team.members.map(member => (
-                      <li key={member.id} className="text-sm text-muted-foreground flex items-center gap-2">
-                        {member.id === team.leader_id && (
-                          <Star className="h-3 w-3 fill-accent text-accent" />
-                        )}
-                        {member.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Pending Requests */}
-                {team.pendingCount > 0 && (
-                  <Badge variant="outline" className="w-full justify-center">
-                    {team.pendingCount} pending request{team.pendingCount > 1 ? 's' : ''}
-                  </Badge>
-                )}
-
-                {/* Charter Preview */}
-                {team.charter && (
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-xs text-muted-foreground italic line-clamp-2">
-                      "{team.charter}"
-                    </p>
-                  </div>
-                )}
-              </Card>
+              <TeamCard
+                key={team.id}
+                id={team.id}
+                name={team.name}
+                logo_url={team.logo_url}
+                memberCount={team.members.length}
+                members={team.members}
+                onClick={() => navigate(`/team/${team.id}`)}
+              />
             ))}
           </div>
         )}

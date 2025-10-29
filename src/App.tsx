@@ -9,6 +9,7 @@ import Teams from "./pages/Teams";
 import RequestForm from "./pages/RequestForm";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import TeamDetails from "./pages/TeamDetails";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/teams" element={<Teams />} />
+            <Route path="/team/:teamId" element={<TeamDetails />} />
             <Route path="/request" element={<RequestForm />} />
             <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

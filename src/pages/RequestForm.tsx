@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Users, Sparkles, ArrowLeft, CheckCircle } from "lucide-react";
+import { UserPlus, Users, Sparkles, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
+import { MultiSelect, Option } from "@/components/ui/multi-select";
+import { TeamLogoUpload } from "@/components/TeamLogoUpload";
 
 interface Team {
   id: string;
@@ -36,6 +37,7 @@ export default function RequestForm() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -78,19 +80,32 @@ export default function RequestForm() {
     [freeStudents, selectedStudent]
   );
 
-  const toggleMemberSelection = (studentId: string) => {
-    setSelectedMembers(prev => {
-      if (prev.includes(studentId)) {
-        return prev.filter(id => id !== studentId);
-      }
-      
-      if (prev.length < 4) {
-        return [...prev, studentId];
-      }
-      
-      toast.error("You can select a maximum of 5 members");
-      return prev;
-    });
+  const memberOptions: Option[] = useMemo(
+    () =>
+      availableMembersForTeam.map((student) => ({
+        label: student.name,
+        value: student.id,
+      })),
+    [availableMembersForTeam]
+  );
+
+  // Validation: Check if selected members are already in teams
+  const validateMembers = async (memberIds: string[]): Promise<boolean> => {
+    const { data: existingMembers } = await supabase
+      .from('team_members')
+      .select('student_id')
+      .in('student_id', memberIds);
+
+    if (existingMembers && existingMembers.length > 0) {
+      const occupiedStudents = students.filter(s => 
+        existingMembers.some(em => em.student_id === s.id)
+      );
+      toast.error(
+        `These students are already in teams: ${occupiedStudents.map(s => s.name).join(', ')}`
+      );
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +129,19 @@ export default function RequestForm() {
       
       if (selectedMembers.length === 0) {
         toast.error("Please select at least one team member");
+        return;
+      }
+
+      // Validate team size (max 5 including creator)
+      if (selectedMembers.length > 4) {
+        toast.error("Maximum team size is 5 members (including you)");
+        return;
+      }
+
+      // Validate members aren't already in teams
+      const isValid = await validateMembers(selectedMembers);
+      if (!isValid) {
+        setLoading(false);
         return;
       }
     }
@@ -141,13 +169,36 @@ export default function RequestForm() {
           .update({ status: 'pending' })
           .eq('id', selectedStudent);
       } else {
+        // Upload logo if provided
+        let logoUrl = null;
+        if (logoFile) {
+          const fileExt = logoFile.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('team-logos')
+            .upload(fileName, logoFile);
+
+          if (uploadError) {
+            toast.error("Failed to upload logo: " + uploadError.message);
+            setLoading(false);
+            return;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('team-logos')
+            .getPublicUrl(fileName);
+          
+          logoUrl = publicUrl;
+        }
+
         const requestData = {
           student_id: selectedStudent,
           type: requestType,
           message: message.trim() || null,
           team_id: null,
           team_name: newTeamName.trim(),
-          selected_members: selectedMembers
+          selected_members: selectedMembers,
+          logo_url: logoUrl
         };
 
         const { error } = await supabase
@@ -170,6 +221,7 @@ export default function RequestForm() {
       setNewTeamName("");
       setMessage("");
       setSelectedMembers([]);
+      setLogoFile(null);
       
       // Navigate back to teams page after 1.5 seconds
       setTimeout(() => navigate("/teams"), 1500);
@@ -318,47 +370,36 @@ export default function RequestForm() {
                 />
               </div>
               
+              <TeamLogoUpload
+                onFileSelect={setLogoFile}
+              />
+              
               <div className="space-y-4">
                 <Label className="text-lg font-semibold flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <Users className="h-5 w-5 text-primary" />
                   Select Team Members
                   <span className="text-sm font-normal text-muted-foreground">(1-4 members, max 5 total)</span>
                 </Label>
-                <div className="glass rounded-xl p-4 space-y-3 border border-primary/20">
-                  {selectedMembers.length >= 4 && (
-                    <Alert className="glass-strong border-accent/40 bg-accent/5">
-                      <AlertDescription className="text-sm flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-accent" />
-                        Maximum 5 members including you
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <div className="max-h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    {availableMembersForTeam.map(student => (
-                      <div 
-                        key={student.id} 
-                        className="flex items-center space-x-3 p-3 rounded-lg glass hover:glass-strong transition-smooth"
-                      >
-                        <Checkbox 
-                          id={`student-${student.id}`}
-                          checked={selectedMembers.includes(student.id)}
-                          onCheckedChange={() => toggleMemberSelection(student.id)}
-                          className="border-primary/40 cursor-pointer"
-                        />
-                        <Label 
-                          htmlFor={`student-${student.id}`}
-                          className="cursor-pointer flex-1 text-base"
-                        >
-                          {student.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="text-base font-medium text-primary pt-2 border-t border-border/50">
-                    Selected: {selectedMembers.length + 1}/5 members (including you)
-                  </div>
+                
+                {selectedMembers.length >= 4 && (
+                  <Alert className="glass-strong border-accent/40 bg-accent/5">
+                    <AlertDescription className="text-sm flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                      Maximum 5 members including you
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <MultiSelect
+                  options={memberOptions}
+                  selected={selectedMembers}
+                  onChange={setSelectedMembers}
+                  placeholder="Search and select team members..."
+                  maxSelected={4}
+                />
+                
+                <div className="text-base font-medium text-primary pt-2">
+                  Selected: {selectedMembers.length + 1}/5 members (including you)
                 </div>
               </div>
             </div>
