@@ -149,6 +149,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          logo_url: string | null
           message: string | null
           selected_members: Json | null
           status: string
@@ -161,6 +162,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           message?: string | null
           selected_members?: Json | null
           status?: string
@@ -173,6 +175,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           message?: string | null
           selected_members?: Json | null
           status?: string
