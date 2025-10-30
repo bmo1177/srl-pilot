@@ -83,6 +83,50 @@ export type Database = {
         }
         Relationships: []
       }
+      metric_history: {
+        Row: {
+          adaptability: number | null
+          collaboration: number | null
+          consistency: number | null
+          id: string
+          problem_solving: number | null
+          recorded_at: string | null
+          srl_score: number | null
+          student_id: string
+          technical_skills: number | null
+        }
+        Insert: {
+          adaptability?: number | null
+          collaboration?: number | null
+          consistency?: number | null
+          id?: string
+          problem_solving?: number | null
+          recorded_at?: string | null
+          srl_score?: number | null
+          student_id: string
+          technical_skills?: number | null
+        }
+        Update: {
+          adaptability?: number | null
+          collaboration?: number | null
+          consistency?: number | null
+          id?: string
+          problem_solving?: number | null
+          recorded_at?: string | null
+          srl_score?: number | null
+          student_id?: string
+          technical_skills?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metric_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participants: {
         Row: {
           avatar: string | null
@@ -202,6 +246,129 @@ export type Database = {
           },
         ]
       }
+      student_action_plans: {
+        Row: {
+          created_at: string | null
+          deadline: string | null
+          description: string | null
+          id: string
+          owner: string | null
+          status: string | null
+          student_id: string
+          task_title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          owner?: string | null
+          status?: string | null
+          student_id: string
+          task_title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          owner?: string | null
+          status?: string | null
+          student_id?: string
+          task_title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_action_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_metrics: {
+        Row: {
+          adaptability: number | null
+          collaboration: number | null
+          consistency: number | null
+          created_at: string | null
+          id: string
+          problem_solving: number | null
+          srl_score: number | null
+          student_id: string
+          technical_skills: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          adaptability?: number | null
+          collaboration?: number | null
+          consistency?: number | null
+          created_at?: string | null
+          id?: string
+          problem_solving?: number | null
+          srl_score?: number | null
+          student_id: string
+          technical_skills?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          adaptability?: number | null
+          collaboration?: number | null
+          consistency?: number | null
+          created_at?: string | null
+          id?: string
+          problem_solving?: number | null
+          srl_score?: number | null
+          student_id?: string
+          technical_skills?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_metrics_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_reflections: {
+        Row: {
+          created_at: string | null
+          id: string
+          milestone: string | null
+          reflection_text: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          milestone?: string | null
+          reflection_text: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          milestone?: string | null
+          reflection_text?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_reflections_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           created_at: string
@@ -266,6 +433,41 @@ export type Database = {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_metrics: {
+        Row: {
+          avg_srl_score: number | null
+          created_at: string | null
+          id: string
+          synergy_score: number | null
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avg_srl_score?: number | null
+          created_at?: string | null
+          id?: string
+          synergy_score?: number | null
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avg_srl_score?: number | null
+          created_at?: string | null
+          id?: string
+          synergy_score?: number | null
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_metrics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },

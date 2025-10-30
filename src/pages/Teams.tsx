@@ -103,12 +103,43 @@ const Teams = () => {
   return (
     <div className="min-h-[calc(100vh-8rem)] py-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with Analytics */}
         <div className="glass-strong rounded-2xl p-8 border border-primary/20 mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-4">All Teams</h1>
-          <p className="text-lg text-muted-foreground mb-6">
-            Browse existing teams or create your own for the Mobile Development TP
-          </p>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold gradient-text">Team Collaboration</h1>
+              <p className="text-lg text-muted-foreground">
+                Active teams working on the Mobile Development TP with SRL principles
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 mb-6">
+            <Card className="glass p-4 border-primary/20">
+              <p className="text-sm text-muted-foreground mb-1">Active Teams</p>
+              <p className="text-2xl font-bold">{teams.length}</p>
+            </Card>
+            <Card className="glass p-4 border-secondary/20">
+              <p className="text-sm text-muted-foreground mb-1">Total Members</p>
+              <p className="text-2xl font-bold">
+                {teams.reduce((sum, t) => sum + t.members.length, 0)}
+              </p>
+            </Card>
+            <Card className="glass p-4 border-accent/20">
+              <p className="text-sm text-muted-foreground mb-1">Avg Team Size</p>
+              <p className="text-2xl font-bold">
+                {teams.length > 0
+                  ? Math.round(
+                      teams.reduce((sum, t) => sum + t.members.length, 0) / teams.length
+                    )
+                  : 0}
+              </p>
+            </Card>
+          </div>
+          
           <Button 
             onClick={() => navigate("/request")}
             size="lg"
@@ -148,7 +179,7 @@ const Teams = () => {
                 logo_url={team.logo_url}
                 memberCount={team.members.length}
                 members={team.members}
-                onClick={() => navigate(`/team/${team.id}`)}
+                onClick={() => navigate(`/teams/${team.id}`)}
               />
             ))}
           </div>

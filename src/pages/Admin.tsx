@@ -10,6 +10,7 @@ import { LogOut } from "lucide-react";
 import { StudentsTab } from "@/components/admin/StudentsTab";
 import { TeamsTab } from "@/components/admin/TeamsTab";
 import { RequestsTab } from "@/components/admin/RequestsTab";
+import { AnalyticsTab } from "@/components/admin/AnalyticsTab";
 
 const Admin = () => {
   const [user, setUser] = useState<any>(null);
@@ -168,12 +169,17 @@ const Admin = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="requests">Requests</TabsTrigger>
             <TabsTrigger value="students">Students</TabsTrigger>
             <TabsTrigger value="teams">Teams</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <AnalyticsTab />
+          </TabsContent>
 
           <TabsContent value="requests">
             <RequestsTab />

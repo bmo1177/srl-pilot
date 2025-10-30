@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, UserPlus, Shield, Menu, X } from "lucide-react";
+import { Home, GraduationCap, Users, UserPlus, Shield, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -23,8 +23,9 @@ export const Sidebar = () => {
 
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "All Teams", path: "/teams", icon: Users },
-    { name: "Join/Create Team", path: "/request", icon: UserPlus },
+    { name: "Students", path: "/students", icon: GraduationCap },
+    { name: "Teams", path: "/teams", icon: Users },
+    { name: "Join/Create", path: "/request", icon: UserPlus },
     { name: "Admin", path: "/admin", icon: Shield },
   ];
 
