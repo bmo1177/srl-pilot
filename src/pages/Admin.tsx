@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { LogOut, AlertCircle } from "lucide-react";
 import { StudentsTab } from "@/components/admin/StudentsTab";
 import { TeamsTab } from "@/components/admin/TeamsTab";
 import { RequestsTab } from "@/components/admin/RequestsTab";
 import { AnalyticsTab } from "@/components/admin/AnalyticsTab";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const Admin = () => {
+  const { isAdmin, loading: authLoading } = useAdminAuth();
   const [user, setUser] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,14 +32,6 @@ const Admin = () => {
       
       if (session?.user) {
         setUser(session.user);
-        const { data: adminCheck } = await supabase
-          .rpc('is_admin', { user_id: session.user.id });
-        
-        setIsAdmin(adminCheck || false);
-        
-        if (!adminCheck) {
-          toast.error("Access denied: You are not an admin");
-        }
       }
     } catch (error: any) {
       console.error("Error checking user:", error);
@@ -49,21 +43,6 @@ const Admin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Test admin credentials for easy access
-    if (email === "admin@test.com" && password === "admin123") {
-      // Create a mock user for testing purposes
-      const mockUser = {
-        id: "test-admin-id",
-        email: "admin@test.com",
-        role: "admin"
-      };
-      
-      setUser(mockUser);
-      setIsAdmin(true);
-      toast.success("Logged in as test admin");
-      return;
-    }
-    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -73,18 +52,10 @@ const Admin = () => {
       if (error) throw error;
 
       if (data.user) {
-        const { data: adminCheck } = await supabase
-          .rpc('is_admin', { user_id: data.user.id });
-        
-        if (!adminCheck) {
-          await supabase.auth.signOut();
-          toast.error("Access denied: You are not an admin");
-          return;
-        }
-
         setUser(data.user);
-        setIsAdmin(true);
         toast.success("Logged in successfully");
+        // Reload to check admin status
+        window.location.reload();
       }
     } catch (error: any) {
       toast.error("Login failed: " + error.message);
@@ -94,25 +65,24 @@ const Admin = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
-    setIsAdmin(false);
     toast.success("Logged out successfully");
     navigate("/");
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md glass-strong border-primary/20">
           <CardHeader>
-            <CardTitle>Admin Login</CardTitle>
+            <CardTitle className="gradient-text">Admin Login</CardTitle>
             <CardDescription>Sign in to manage teams and students</CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,6 +94,7 @@ const Admin = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="glass border-primary/20"
                 />
               </div>
               <div className="space-y-2">
@@ -133,6 +104,7 @@ const Admin = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="glass border-primary/20"
                 />
               </div>
               <Button type="submit" className="w-full">
@@ -153,11 +125,32 @@ const Admin = () => {
     );
   }
 
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-lg glass-strong">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You don't have permission to access the admin dashboard. Please contact an administrator to request access.
+          </AlertDescription>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => navigate("/")}
+          >
+            Back to Home
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b glass-strong backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold gradient-text">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{user.email}</span>
             <Button onClick={handleLogout} variant="outline" size="sm" className="gap-2">
@@ -170,7 +163,7 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 glass-strong">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="requests">Requests</TabsTrigger>
             <TabsTrigger value="students">Students</TabsTrigger>

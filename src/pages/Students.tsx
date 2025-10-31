@@ -34,6 +34,7 @@ interface Student {
   status: string;
   university_email: string;
   personal_email: string | null;
+  created_at: string;
   team_members?: Array<{
     team: {
       name: string;
@@ -78,10 +79,28 @@ const Students = () => {
           )
         `
         )
+        .eq("archived", false)
         .order("name");
 
       if (error) throw error;
-      setStudents(data || []);
+      
+      // Deduplicate by name (keep earliest created_at)
+      const uniqueStudents = data?.reduce((acc, student) => {
+        const normalizedName = student.name.toLowerCase().trim();
+        const existing = acc.find(s => s.name.toLowerCase().trim() === normalizedName);
+        
+        if (!existing) {
+          acc.push(student);
+        } else if (new Date(student.created_at) < new Date(existing.created_at)) {
+          // Replace with earlier student
+          const index = acc.indexOf(existing);
+          acc[index] = student;
+        }
+        
+        return acc;
+      }, [] as Student[]) || [];
+      
+      setStudents(uniqueStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
     } finally {

@@ -1,73 +1,214 @@
-# Welcome to your Lovable project
+# TP Teams - SRL-Focused Student & Team Management Platform
 
-## Project info
+A modern, analytics-first platform for managing students and teams with a focus on Self-Regulated Learning (SRL) metrics and progress tracking.
+
+## Project Info
 
 **URL**: https://lovable.dev/projects/e45ddf6c-7c95-4915-a810-1eb0f6b2c0b8
 
-## How can I edit this code?
+## 🎯 Features
 
-There are several ways of editing your application.
+### Student Dashboard
+- **Analytics-First Interface**: View comprehensive student metrics including SRL scores, technical skills, collaboration, adaptability, consistency, and problem-solving abilities
+- **Visual Analytics**: Radar charts for skill distribution, line charts for historical trends
+- **Manual Metric Editing**: Admins can manually update student metrics from the UI
+- **Reflection Timeline**: Track student reflections and journals with timestamps
+- **Action Plans**: Assignable tasks with deadlines, owners, and status tracking
+- **Data Export**: Export individual or bulk student data in JSON/CSV formats
 
-**Use Lovable**
+### Team Management
+- **Smart Team Creation**: Searchable multi-select for adding team members (max 5 per team)
+- **Team Logo Upload**: Optional logo upload with preview stored in Supabase Storage
+- **Automatic Status Updates**: Student status automatically changes between "free" and "busy" based on team membership
+- **Team Analytics**: View team averages, synergy scores, and member performance
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e45ddf6c-7c95-4915-a810-1eb0f6b2c0b8) and start prompting.
+### Admin Operations
+- **Secure Role-Based Access**: Server-side role validation using Supabase RLS policies
+- **Request Management**: Approve/reject student join and team creation requests
+- **Analytics Dashboard**: Aggregated metrics, top performers, at-risk students, team comparisons
+- **Duplicate Detection**: Automatic deduplication at query level, with manual cleanup scripts
 
-Changes made via Lovable will be committed automatically to this repo.
+### Security
+- **Row-Level Security (RLS)**: Properly configured RLS policies for all tables
+- **Role-Based Access Control**: Secure admin functions using security definer pattern
+- **Soft Delete**: Archive functionality instead of hard deletes for data recovery
 
-**Use your preferred IDE**
+## 🚀 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+- Node.js 18+ and npm
+- Supabase account and project
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Navigate to project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Setting Up Admin Access
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To grant admin privileges to a user, run this SQL in your Supabase SQL Editor:
 
-**Use GitHub Codespaces**
+```sql
+-- Replace 'USER_ID_HERE' with the actual user ID from auth.users
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('USER_ID_HERE', 'admin');
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+See [ADMIN_SETUP.md](./ADMIN_SETUP.md) for detailed admin configuration instructions.
 
-## What technologies are used for this project?
+## 📊 Database Schema
 
-This project is built with:
+### Core Tables
+- `students`: Student profiles with status (free/busy/graduated) and archive flag
+- `student_metrics`: Performance metrics (0-100 scale) for ML/AI analysis
+- `metric_history`: Historical metric tracking with automatic triggers
+- `student_reflections`: Timestamped reflections and journals
+- `student_action_plans`: Tasks with deadlines and status
+- `teams`: Team profiles with logo URLs and status
+- `team_members`: Junction table for team-student relationships
+- `team_metrics`: Aggregated team performance metrics
+- `requests`: Join/create team requests with approval workflow
+- `user_roles`: Role-based access control table
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Automatic Triggers
+- **Student Status Updates**: Automatically updates student status when joining/leaving teams
+- **Metric History**: Records all metric changes for historical analysis
+- **Updated Timestamps**: Auto-updates `updated_at` columns
 
-## How can I deploy this project?
+## 🎨 Design System
+
+### Color Palette
+- **Primary**: Indigo (#6366F1) - Focus and Responsibility
+- **Secondary**: Teal/Sea-green (#0EA5A4) - Growth and Autonomy
+- **Accent**: Warm Amber (#F59E0B) - Achievement and Milestones
+
+### UI Features
+- Glassmorphism panels with frosted glass effect
+- Soft gradients and smooth micro-interactions
+- Light theme default with dark mode toggle
+- Responsive design for mobile/tablet/desktop
+
+## 📖 Key Documentation
+
+- [ADMIN_SETUP.md](./ADMIN_SETUP.md): Admin user setup and management
+- [DUPLICATE_CLEANUP.sql](./DUPLICATE_CLEANUP.sql): SQL script for merging duplicate records
+
+## 🔧 Development
+
+### Project Structure
+```
+src/
+├── components/
+│   ├── admin/          # Admin dashboard tabs
+│   ├── dashboard/      # Student dashboard components
+│   ├── students/       # Student CRUD components
+│   ├── teams/          # Team management components
+│   └── ui/             # Shadcn UI components
+├── hooks/              # Custom React hooks
+├── pages/              # Main application pages
+├── utils/              # Utility functions
+└── integrations/       # Supabase integration
+```
+
+### Manual Metric Editing
+
+Admins can edit student metrics from the Student Dashboard:
+1. Navigate to Students page
+2. Click on a student card
+3. Find "Edit Metrics" section
+4. Click "Edit", update values (0-100), and save
+
+All metrics are stored as structured JSON for future ML/AI analysis.
+
+### Duplicate Handling
+
+The system automatically deduplicates students at query level by:
+- Filtering by normalized name (lowercase, trimmed)
+- Keeping the earliest created record
+- Preserving all relationships
+
+For manual cleanup, use the [DUPLICATE_CLEANUP.sql](./DUPLICATE_CLEANUP.sql) script.
+
+### Data Export
+
+**Single Student**: Click "Export Data" on student dashboard
+**All Students**: Use "Export" dropdown on Students page (JSON or CSV)
+
+CSV exports are ML-ready with normalized 0-100 scale metrics.
+
+## 🛠 Tech Stack
+
+- **Frontend**: Vite + React + TypeScript
+- **Styling**: TailwindCSS with custom design system
+- **UI Components**: Shadcn UI + Radix UI
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Charts**: Recharts
+- **Forms**: React Hook Form + Zod validation
+
+## 🔐 Security Best Practices
+
+1. **Never** store admin credentials in client-side code
+2. **Always** use `has_role()` function for RLS policies
+3. **Validate** all input data before database operations
+4. **Use** soft deletes (archive flag) to prevent data loss
+5. **Audit** admin actions through database logs
+
+## 📝 Testing Checklist
+
+- [ ] Sidebar responsive and never overlaps content
+- [ ] Create team multi-select works (max 5 members)
+- [ ] Delete student works for admins
+- [ ] Duplicate cleanup script tested
+- [ ] Metrics editing saves correctly
+- [ ] Student status updates automatically
+- [ ] All RLS policies enforced
+- [ ] Export functions work (JSON/CSV)
+
+## 🚀 Deployment
 
 Simply open [Lovable](https://lovable.dev/projects/e45ddf6c-7c95-4915-a810-1eb0f6b2c0b8) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
+### Custom Domain
 
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## 🤝 Editing this Project
+
+### Use Lovable
+
+Simply visit the [Lovable Project](https://lovable.dev/projects/e45ddf6c-7c95-4915-a810-1eb0f6b2c0b8) and start prompting.
+
+### Use your preferred IDE
+
+Clone the repo and push changes - they will be reflected in Lovable.
+
+### Use GitHub Codespaces
+
+- Navigate to your repository
+- Click "Code" → "Codespaces" → "New codespace"
+- Edit files and commit changes
+
+## 🆘 Support
+
+For issues or questions:
+1. Check Supabase logs in Dashboard → Database → Logs
+2. Review RLS policies in Dashboard → Database → Tables
+3. Verify user roles in `user_roles` table
+4. See [ADMIN_SETUP.md](./ADMIN_SETUP.md) for troubleshooting
+
+---
+
+Built with ❤️ for Self-Regulated Learning research

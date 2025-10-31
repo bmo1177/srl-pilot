@@ -13,6 +13,7 @@ import { SkillRadarChart } from "@/components/dashboard/SkillRadarChart";
 import { MetricHistoryChart } from "@/components/dashboard/MetricHistoryChart";
 import { ReflectionTimeline } from "@/components/dashboard/ReflectionTimeline";
 import { ActionPlanManager } from "@/components/dashboard/ActionPlanManager";
+import { MetricsEditor } from "@/components/dashboard/MetricsEditor";
 
 interface Student {
   id: string;
@@ -228,6 +229,17 @@ const StudentDashboard = () => {
         {metrics && <MetricsPanel metrics={metrics} />}
         {metrics && <SkillRadarChart metrics={metrics} />}
       </div>
+
+      {/* Metrics Editor */}
+      {metrics && (
+        <div className="mb-6">
+          <MetricsEditor 
+            studentId={id!} 
+            metrics={metrics} 
+            onUpdate={fetchStudentData}
+          />
+        </div>
+      )}
 
       {/* History Chart */}
       <div className="mb-6">
