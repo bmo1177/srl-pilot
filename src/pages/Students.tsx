@@ -2,14 +2,38 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Users } from "lucide-react";
+import { Search, Users, Plus, Download, Trash2, RefreshCw } from "lucide-react";
 import { StudentCard } from "@/components/dashboard/StudentCard";
+import { StudentFormDialog } from "@/components/students/StudentFormDialog";
+import { toast } from "sonner";
+import {
+  detectAndRemoveDuplicates,
+  exportStudentsJSON,
+  exportStudentsCSV,
+} from "@/utils/duplicateDetection";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Student {
   id: string;
   name: string;
   status: string;
   university_email: string;
+  personal_email: string | null;
   team_members?: Array<{
     team: {
       name: string;
@@ -32,6 +56,10 @@ const Students = () => {
   const [metrics, setMetrics] = useState<Record<string, Metrics>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false);
+  const [cleaningUp, setCleaningUp] = useState(false);
 
   useEffect(() => {
     fetchStudents();
@@ -81,6 +109,30 @@ const Students = () => {
     student.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleAddStudent = () => {
+    setSelectedStudent(null);
+    setDialogOpen(true);
+  };
+
+  const handleCleanupDuplicates = async () => {
+    setCleaningUp(true);
+    try {
+      const result = await detectAndRemoveDuplicates();
+      if (result.duplicatesRemoved > 0) {
+        toast.success(`Removed ${result.duplicatesRemoved} duplicate student(s)`);
+        fetchStudents();
+      } else {
+        toast.info("No duplicates found");
+      }
+    } catch (error) {
+      console.error("Error cleaning duplicates:", error);
+      toast.error("Failed to clean duplicates");
+    } finally {
+      setCleaningUp(false);
+      setCleanupDialogOpen(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-12">
       <div className="mb-8">
@@ -96,7 +148,7 @@ const Students = () => {
           </div>
         </div>
 
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -106,9 +158,52 @@ const Students = () => {
               className="pl-9 glass"
             />
           </div>
-          <div className="text-sm text-muted-foreground">
-            {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""}
+          
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={handleAddStudent} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Student
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={exportStudentsJSON}>
+                  Export as JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportStudentsCSV}>
+                  Export as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant="outline"
+              onClick={() => setCleanupDialogOpen(true)}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clean Duplicates
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={fetchStudents}
+              title="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""}
         </div>
       </div>
 
@@ -132,6 +227,32 @@ const Students = () => {
           ))}
         </div>
       )}
+
+      <StudentFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        student={selectedStudent}
+        onSuccess={fetchStudents}
+      />
+
+      <AlertDialog open={cleanupDialogOpen} onOpenChange={setCleanupDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Duplicate Students?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will detect students with identical names or emails and remove duplicates, keeping
+              only the oldest record. All relationships (teams, metrics, reflections) will be
+              preserved and linked to the remaining student. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cleaningUp}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCleanupDuplicates} disabled={cleaningUp}>
+              {cleaningUp ? "Cleaning..." : "Clean Duplicates"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
