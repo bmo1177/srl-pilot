@@ -70,7 +70,7 @@ export const StudentsTab = () => {
           name: newStudent.name.trim(),
           university_email: newStudent.university_email.trim().toLowerCase(),
           personal_email: newStudent.personal_email.trim() || null,
-          status: 'free'
+          status: 'active'
         }]);
 
       if (error) throw error;
@@ -101,9 +101,10 @@ export const StudentsTab = () => {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "outline"> = {
-      free: "outline",
-      in_team: "default",
-      pending: "secondary"
+      active: "outline",
+      team_assigned: "default",
+      inactive: "secondary",
+      graduated: "secondary"
     };
 
     return <Badge variant={variants[status] || "outline"}>{status.replace('_', ' ')}</Badge>;

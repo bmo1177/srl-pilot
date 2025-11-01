@@ -23,9 +23,9 @@ interface StudentFormDialogProps {
 export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: StudentFormDialogProps) => {
   const [formData, setFormData] = useState({
     name: student?.name || "",
-    university_email: student?.university_email || "",
-    personal_email: student?.personal_email || "",
-    status: student?.status || "free",
+    email: student?.university_email || "",
+    email_personal: student?.personal_email || "",
+    status: student?.status || "active",
   });
   const [loading, setLoading] = useState(false);
 
@@ -40,8 +40,8 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .from("students")
           .update({
             name: formData.name,
-            university_email: formData.university_email,
-            personal_email: formData.personal_email || null,
+            university_email: formData.email,
+            personal_email: formData.email_personal || null,
             status: formData.status,
           })
           .eq("id", student.id);
@@ -54,8 +54,8 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .from("students")
           .insert({
             name: formData.name,
-            university_email: formData.university_email,
-            personal_email: formData.personal_email || null,
+            university_email: formData.email,
+            personal_email: formData.email_personal || null,
             status: formData.status,
           });
 
@@ -65,7 +65,7 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: "", university_email: "", personal_email: "", status: "free" });
+      setFormData({ name: "", email: "", email_personal: "", status: "active" });
     } catch (error: any) {
       console.error("Error saving student:", error);
       toast.error(error.message || "Failed to save student");
@@ -93,24 +93,24 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="university_email">University Email *</Label>
+            <Label htmlFor="email">University Email *</Label>
             <Input
-              id="university_email"
+              id="email"
               type="email"
-              value={formData.university_email}
-              onChange={(e) => setFormData({ ...formData, university_email: e.target.value })}
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
               placeholder="john.doe@university.edu"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="personal_email">Personal Email (Optional)</Label>
+            <Label htmlFor="email_personal">Personal Email (Optional)</Label>
             <Input
-              id="personal_email"
+              id="email_personal"
               type="email"
-              value={formData.personal_email}
-              onChange={(e) => setFormData({ ...formData, personal_email: e.target.value })}
+              value={formData.email_personal}
+              onChange={(e) => setFormData({ ...formData, email_personal: e.target.value })}
               placeholder="john@email.com"
             />
           </div>
@@ -122,8 +122,9 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="busy">Busy</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="team_assigned">Team Assigned</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="graduated">Graduated</SelectItem>
               </SelectContent>
             </Select>

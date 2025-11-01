@@ -19,8 +19,8 @@ interface Student {
   id: string;
   name: string;
   status: string;
-  university_email: string;
-  personal_email: string | null;
+  email: string;
+  email_personal: string | null;
   team_members?: Array<{
     team: {
       id: string;
@@ -71,7 +71,16 @@ const StudentDashboard = () => {
         .single();
 
       if (studentError) throw studentError;
-      setStudent(studentData);
+      // Map to our interface
+      const mappedStudent: Student = {
+        id: studentData.id,
+        name: studentData.name,
+        status: studentData.status,
+        email: studentData.university_email || '',
+        email_personal: studentData.personal_email,
+        team_members: studentData.team_members
+      };
+      setStudent(mappedStudent);
 
       // Fetch metrics
       const { data: metricsData } = await supabase
@@ -201,8 +210,8 @@ const StudentDashboard = () => {
               )}
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>📧 {student.university_email}</p>
-              {student.personal_email && <p>📧 {student.personal_email}</p>}
+              <p>📧 {student.email}</p>
+              {student.email_personal && <p>📧 {student.email_personal}</p>}
             </div>
           </div>
 

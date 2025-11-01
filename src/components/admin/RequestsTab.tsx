@@ -120,10 +120,10 @@ export const RequestsTab = () => {
 
           if (membersError) throw membersError;
 
-          // Update all selected members status to in_team
+          // Update all selected members status to team_assigned
           const { error: updateMembersError } = await supabase
             .from('students')
-            .update({ status: 'in_team' })
+            .update({ status: 'team_assigned' })
             .in('id', request.selected_members);
 
           if (updateMembersError) throw updateMembersError;
@@ -152,7 +152,7 @@ export const RequestsTab = () => {
       // Update student status
       const { error: studentError } = await supabase
         .from('students')
-        .update({ status: 'in_team' })
+        .update({ status: 'team_assigned' })
         .eq('id', request.student_id);
 
       if (studentError) throw studentError;
@@ -176,10 +176,10 @@ export const RequestsTab = () => {
 
       if (requestError) throw requestError;
 
-      // Update student status back to free
+      // Update student status back to active
       const { error: studentError } = await supabase
         .from('students')
-        .update({ status: 'free' })
+        .update({ status: 'active' })
         .eq('id', request.student_id);
 
       if (studentError) throw studentError;

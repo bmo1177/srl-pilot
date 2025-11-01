@@ -21,8 +21,8 @@ interface Team {
 interface Student {
   id: string;
   name: string;
-  university_email: string;
-  personal_email?: string;
+  email: string;
+  email_personal?: string;
   status: string;
 }
 
@@ -61,7 +61,14 @@ export default function RequestForm() {
     }
 
     if (studentsRes.data) {
-      setStudents(studentsRes.data);
+      const mappedStudents = studentsRes.data.map(s => ({
+        id: s.id,
+        name: s.name,
+        email: s.university_email || '',
+        email_personal: s.personal_email,
+        status: s.status
+      }));
+      setStudents(mappedStudents);
     }
   };
 
@@ -71,7 +78,7 @@ export default function RequestForm() {
   );
   
   const freeStudents = useMemo(() => 
-    students.filter(s => s.status === 'free'), 
+    students.filter(s => s.status === 'active'), 
     [students]
   );
   
@@ -166,7 +173,7 @@ export default function RequestForm() {
 
         await supabase
           .from('students')
-          .update({ status: 'pending' })
+          .update({ status: 'team_assigned' })
           .eq('id', selectedStudent);
       } else {
         // Upload logo if provided
@@ -209,7 +216,7 @@ export default function RequestForm() {
 
         await supabase
           .from('students')
-          .update({ status: 'pending' })
+          .update({ status: 'team_assigned' })
           .eq('id', selectedStudent);
       }
 

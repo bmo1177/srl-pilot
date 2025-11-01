@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Student {
   id: string;
   name: string;
-  university_email: string;
+  email: string;
   status: string;
 }
 
@@ -49,20 +49,24 @@ export const TeamMemberMultiSelect = ({
     try {
       setLoading(true);
       
-      // Fetch all students who are free (not in a team)
-      let query = supabase
+      // Fetch all students who are active (not in a team)
+      const { data, error } = await supabase
         .from("students")
         .select("id, name, university_email, status")
-        .eq("status", "free")
+        .eq("status", "active")
         .eq("archived", false)
         .order("name");
 
-      const { data, error } = await query;
-
       if (error) throw error;
 
-      // Filter out the leader if provided
-      let filteredData = data || [];
+      // Filter out the leader if provided and map to our interface
+      let filteredData = (data || []).map(s => ({
+        id: s.id,
+        name: s.name,
+        email: s.university_email || '',
+        status: s.status
+      }));
+      
       if (excludeLeader) {
         filteredData = filteredData.filter(s => s.id !== excludeLeader);
       }
@@ -142,7 +146,7 @@ export const TeamMemberMultiSelect = ({
                     <div className="flex flex-col">
                       <span>{student.name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {student.university_email}
+                        {student.email}
                       </span>
                     </div>
                   </CommandItem>

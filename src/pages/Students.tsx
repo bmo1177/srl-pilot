@@ -32,8 +32,8 @@ interface Student {
   id: string;
   name: string;
   status: string;
-  university_email: string;
-  personal_email: string | null;
+  email: string;
+  email_personal: string | null;
   created_at: string;
   team_members?: Array<{
     team: {
@@ -84,8 +84,18 @@ const Students = () => {
 
       if (error) throw error;
       
-      // Deduplicate by name (keep earliest created_at)
-      const uniqueStudents = data?.reduce((acc, student) => {
+      // Map database columns to our interface and deduplicate by name (keep earliest created_at)
+      const mappedData = (data || []).map(s => ({
+        id: s.id,
+        name: s.name,
+        status: s.status,
+        email: s.university_email || '',
+        email_personal: s.personal_email,
+        created_at: s.created_at,
+        team_members: s.team_members
+      }));
+
+      const uniqueStudents = mappedData.reduce((acc, student) => {
         const normalizedName = student.name.toLowerCase().trim();
         const existing = acc.find(s => s.name.toLowerCase().trim() === normalizedName);
         
@@ -98,7 +108,7 @@ const Students = () => {
         }
         
         return acc;
-      }, [] as Student[]) || [];
+      }, [] as Student[]);
       
       setStudents(uniqueStudents);
     } catch (error) {
@@ -250,7 +260,13 @@ const Students = () => {
       <StudentFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        student={selectedStudent}
+        student={selectedStudent ? {
+          id: selectedStudent.id,
+          name: selectedStudent.name,
+          university_email: selectedStudent.email,
+          personal_email: selectedStudent.email_personal,
+          status: selectedStudent.status
+        } : null}
         onSuccess={fetchStudents}
       />
 
