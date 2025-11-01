@@ -17,10 +17,9 @@ interface Request {
   team_name: string | null;
   created_at: string;
   selected_members?: string[];
-  logo_url?: string;
   students?: {
     name: string;
-    university_email: string;
+    email: string;
   };
   teams?: {
     name: string;
@@ -52,7 +51,7 @@ export const RequestsTab = () => {
         .from('requests')
         .select(`
           *,
-          students (name, university_email),
+          students (name, email),
           teams (name)
         `)
         .order('created_at', { ascending: false });
@@ -81,14 +80,13 @@ export const RequestsTab = () => {
       if (!request) return;
 
       if (request.type === "create") {
-        // Create new team with logo
+        // Create new team
         const { data: newTeam, error: teamError } = await supabase
           .from('teams')
           .insert([{
             name: request.team_name,
             leader_id: request.student_id,
-            status: 'active',
-            logo_url: request.logo_url || null
+            status: 'active'
           }])
           .select()
           .single();

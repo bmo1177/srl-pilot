@@ -52,7 +52,7 @@ export const TeamMemberMultiSelect = ({
       // Fetch all students who are active (not in a team)
       const { data, error } = await supabase
         .from("students")
-        .select("id, name, university_email, status")
+        .select("id, name, email, status")
         .eq("status", "active")
         .eq("archived", false)
         .order("name");
@@ -63,7 +63,7 @@ export const TeamMemberMultiSelect = ({
       let filteredData = (data || []).map(s => ({
         id: s.id,
         name: s.name,
-        email: s.university_email || '',
+        email: s.email || '',
         status: s.status
       }));
       

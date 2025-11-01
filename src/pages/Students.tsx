@@ -89,8 +89,8 @@ const Students = () => {
         id: s.id,
         name: s.name,
         status: s.status,
-        email: s.university_email || '',
-        email_personal: s.personal_email,
+        email: s.email || '',
+        email_personal: s.email_personal,
         created_at: s.created_at,
         team_members: s.team_members
       }));
@@ -263,8 +263,8 @@ const Students = () => {
         student={selectedStudent ? {
           id: selectedStudent.id,
           name: selectedStudent.name,
-          university_email: selectedStudent.email,
-          personal_email: selectedStudent.email_personal,
+          email: selectedStudent.email,
+          email_personal: selectedStudent.email_personal,
           status: selectedStudent.status
         } : null}
         onSuccess={fetchStudents}

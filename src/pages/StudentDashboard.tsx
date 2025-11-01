@@ -76,8 +76,8 @@ const StudentDashboard = () => {
         id: studentData.id,
         name: studentData.name,
         status: studentData.status,
-        email: studentData.university_email || '',
-        email_personal: studentData.personal_email,
+        email: studentData.email || '',
+        email_personal: studentData.email_personal,
         team_members: studentData.team_members
       };
       setStudent(mappedStudent);

@@ -13,8 +13,8 @@ interface StudentFormDialogProps {
   student?: {
     id: string;
     name: string;
-    university_email: string;
-    personal_email: string | null;
+    email: string;
+    email_personal: string | null;
     status: string;
   } | null;
   onSuccess: () => void;
@@ -23,8 +23,8 @@ interface StudentFormDialogProps {
 export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: StudentFormDialogProps) => {
   const [formData, setFormData] = useState({
     name: student?.name || "",
-    email: student?.university_email || "",
-    email_personal: student?.personal_email || "",
+    email: student?.email || "",
+    email_personal: student?.email_personal || "",
     status: student?.status || "active",
   });
   const [loading, setLoading] = useState(false);
@@ -40,8 +40,8 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .from("students")
           .update({
             name: formData.name,
-            university_email: formData.email,
-            personal_email: formData.email_personal || null,
+            email: formData.email,
+            email_personal: formData.email_personal || null,
             status: formData.status,
           })
           .eq("id", student.id);
@@ -54,8 +54,8 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .from("students")
           .insert({
             name: formData.name,
-            university_email: formData.email,
-            personal_email: formData.email_personal || null,
+            email: formData.email,
+            email_personal: formData.email_personal || null,
             status: formData.status,
           });
 

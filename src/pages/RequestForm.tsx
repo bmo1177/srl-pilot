@@ -64,8 +64,8 @@ export default function RequestForm() {
       const mappedStudents = studentsRes.data.map(s => ({
         id: s.id,
         name: s.name,
-        email: s.university_email || '',
-        email_personal: s.personal_email,
+        email: s.email || '',
+        email_personal: s.email_personal,
         status: s.status
       }));
       setStudents(mappedStudents);
@@ -176,36 +176,13 @@ export default function RequestForm() {
           .update({ status: 'team_assigned' })
           .eq('id', selectedStudent);
       } else {
-        // Upload logo if provided
-        let logoUrl = null;
-        if (logoFile) {
-          const fileExt = logoFile.name.split('.').pop();
-          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('team-logos')
-            .upload(fileName, logoFile);
-
-          if (uploadError) {
-            toast.error("Failed to upload logo: " + uploadError.message);
-            setLoading(false);
-            return;
-          }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('team-logos')
-            .getPublicUrl(fileName);
-          
-          logoUrl = publicUrl;
-        }
-
         const requestData = {
           student_id: selectedStudent,
           type: requestType,
           message: message.trim() || null,
           team_id: null,
           team_name: newTeamName.trim(),
-          selected_members: selectedMembers,
-          logo_url: logoUrl
+          selected_members: selectedMembers
         };
 
         const { error } = await supabase
