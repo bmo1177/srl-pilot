@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Student {
   id: string;
   name: string;
-  email: string;
+  university_email: string;
   status: string;
 }
 
@@ -52,7 +52,7 @@ export const TeamMemberMultiSelect = ({
       // Fetch all students who are active (not in a team)
       const { data, error } = await supabase
         .from("students")
-        .select("id, name, email, status")
+        .select("id, name, university_email, status")
         .eq("status", "active")
         .eq("archived", false)
         .order("name");
@@ -63,7 +63,7 @@ export const TeamMemberMultiSelect = ({
       let filteredData = (data || []).map(s => ({
         id: s.id,
         name: s.name,
-        email: s.email || '',
+        university_email: s.university_email || '',
         status: s.status
       }));
       
@@ -146,7 +146,7 @@ export const TeamMemberMultiSelect = ({
                     <div className="flex flex-col">
                       <span>{student.name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {student.email}
+                        {student.university_email}
                       </span>
                     </div>
                   </CommandItem>

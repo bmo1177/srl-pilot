@@ -21,8 +21,8 @@ interface Team {
 interface Student {
   id: string;
   name: string;
-  email: string;
-  email_personal?: string;
+  university_email: string;
+  personal_email?: string;
   status: string;
 }
 
@@ -64,8 +64,8 @@ export default function RequestForm() {
       const mappedStudents = studentsRes.data.map(s => ({
         id: s.id,
         name: s.name,
-        email: s.email || '',
-        email_personal: s.email_personal,
+        university_email: s.university_email || '',
+        personal_email: s.personal_email,
         status: s.status
       }));
       setStudents(mappedStudents);

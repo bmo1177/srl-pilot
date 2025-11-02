@@ -13,8 +13,8 @@ interface StudentFormDialogProps {
   student?: {
     id: string;
     name: string;
-    email: string;
-    email_personal: string | null;
+    university_email: string;
+    personal_email: string | null;
     status: string;
   } | null;
   onSuccess: () => void;
@@ -23,8 +23,8 @@ interface StudentFormDialogProps {
 export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: StudentFormDialogProps) => {
   const [formData, setFormData] = useState({
     name: student?.name || "",
-    email: student?.email || "",
-    email_personal: student?.email_personal || "",
+    university_email: student?.university_email || "",
+    personal_email: student?.personal_email || "",
     status: student?.status || "active",
   });
   const [loading, setLoading] = useState(false);
@@ -40,8 +40,8 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .from("students")
           .update({
             name: formData.name,
-            email: formData.email,
-            email_personal: formData.email_personal || null,
+            university_email: formData.university_email,
+            personal_email: formData.personal_email || null,
             status: formData.status,
           })
           .eq("id", student.id);
@@ -54,8 +54,8 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .from("students")
           .insert({
             name: formData.name,
-            email: formData.email,
-            email_personal: formData.email_personal || null,
+            university_email: formData.university_email,
+            personal_email: formData.personal_email || null,
             status: formData.status,
           });
 
@@ -65,7 +65,7 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: "", email: "", email_personal: "", status: "active" });
+      setFormData({ name: "", university_email: "", personal_email: "", status: "active" });
     } catch (error: any) {
       console.error("Error saving student:", error);
       toast.error(error.message || "Failed to save student");
@@ -93,24 +93,24 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">University Email *</Label>
+            <Label htmlFor="university_email">University Email *</Label>
             <Input
-              id="email"
+              id="university_email"
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              value={formData.university_email}
+              onChange={(e) => setFormData({ ...formData, university_email: e.target.value })}
               required
               placeholder="john.doe@university.edu"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email_personal">Personal Email (Optional)</Label>
+            <Label htmlFor="personal_email">Personal Email (Optional)</Label>
             <Input
-              id="email_personal"
+              id="personal_email"
               type="email"
-              value={formData.email_personal}
-              onChange={(e) => setFormData({ ...formData, email_personal: e.target.value })}
+              value={formData.personal_email}
+              onChange={(e) => setFormData({ ...formData, personal_email: e.target.value })}
               placeholder="john@email.com"
             />
           </div>

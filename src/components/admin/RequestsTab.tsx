@@ -19,7 +19,7 @@ interface Request {
   selected_members?: string[];
   students?: {
     name: string;
-    email: string;
+    university_email: string;
   };
   teams?: {
     name: string;
@@ -51,7 +51,7 @@ export const RequestsTab = () => {
         .from('requests')
         .select(`
           *,
-          students (name, email),
+          students (name, university_email),
           teams (name)
         `)
         .order('created_at', { ascending: false });

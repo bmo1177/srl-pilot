@@ -32,8 +32,8 @@ interface Student {
   id: string;
   name: string;
   status: string;
-  email: string;
-  email_personal: string | null;
+  university_email: string;
+  personal_email: string | null;
   created_at: string;
   team_members?: Array<{
     team: {
@@ -69,7 +69,7 @@ const Students = () => {
 
   const fetchStudents = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from("students")
         .select(
           `
@@ -89,8 +89,8 @@ const Students = () => {
         id: s.id,
         name: s.name,
         status: s.status,
-        email: s.email || '',
-        email_personal: s.email_personal,
+        university_email: s.university_email || '',
+        personal_email: s.personal_email,
         created_at: s.created_at,
         team_members: s.team_members
       }));
@@ -263,8 +263,8 @@ const Students = () => {
         student={selectedStudent ? {
           id: selectedStudent.id,
           name: selectedStudent.name,
-          email: selectedStudent.email,
-          email_personal: selectedStudent.email_personal,
+          university_email: selectedStudent.university_email,
+          personal_email: selectedStudent.personal_email,
           status: selectedStudent.status
         } : null}
         onSuccess={fetchStudents}

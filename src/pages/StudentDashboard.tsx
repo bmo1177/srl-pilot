@@ -19,8 +19,8 @@ interface Student {
   id: string;
   name: string;
   status: string;
-  email: string;
-  email_personal: string | null;
+  university_email: string;
+  personal_email: string | null;
   team_members?: Array<{
     team: {
       id: string;
@@ -76,8 +76,8 @@ const StudentDashboard = () => {
         id: studentData.id,
         name: studentData.name,
         status: studentData.status,
-        email: studentData.email || '',
-        email_personal: studentData.email_personal,
+        university_email: studentData.university_email || '',
+        personal_email: studentData.personal_email,
         team_members: studentData.team_members
       };
       setStudent(mappedStudent);
@@ -210,8 +210,8 @@ const StudentDashboard = () => {
               )}
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>📧 {student.email}</p>
-              {student.email_personal && <p>📧 {student.email_personal}</p>}
+              <p>📧 {student.university_email}</p>
+              {student.personal_email && <p>📧 {student.personal_email}</p>}
             </div>
           </div>
 
