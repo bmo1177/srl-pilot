@@ -117,15 +117,7 @@ export type Database = {
           student_id?: string
           technical_skills?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "metric_history_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       participants: {
         Row: {
@@ -191,45 +183,52 @@ export type Database = {
       }
       requests: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           logo_url: string | null
           message: string | null
-          selected_members: Json | null
-          status: string
-          student_id: string
+          selected_members: string[] | null
+          status: string | null
+          student_id: string | null
           team_id: string | null
           team_name: string | null
-          type: string
-          updated_at: string
+          type: string | null
+          user_id: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           logo_url?: string | null
           message?: string | null
-          selected_members?: Json | null
-          status?: string
-          student_id: string
+          selected_members?: string[] | null
+          status?: string | null
+          student_id?: string | null
           team_id?: string | null
           team_name?: string | null
-          type: string
-          updated_at?: string
+          type?: string | null
+          user_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           logo_url?: string | null
           message?: string | null
-          selected_members?: Json | null
-          status?: string
-          student_id?: string
+          selected_members?: string[] | null
+          status?: string | null
+          student_id?: string | null
           team_id?: string | null
           team_name?: string | null
-          type?: string
-          updated_at?: string
+          type?: string | null
+          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "requests_student_id_fkey"
             columns: ["student_id"]
@@ -239,6 +238,119 @@ export type Database = {
           },
           {
             foreignKeyName: "requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_performance_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requests_backup: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          message: string | null
+          status: string | null
+          student_id: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          message?: string | null
+          status?: string | null
+          student_id?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          message?: string | null
+          status?: string | null
+          student_id?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      research_observations: {
+        Row: {
+          confidence_level: number | null
+          content: string
+          created_at: string
+          id: string
+          observation_type: string
+          observer_id: string | null
+          student_id: string | null
+          tags: string[] | null
+          team_id: string | null
+        }
+        Insert: {
+          confidence_level?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          observation_type: string
+          observer_id?: string | null
+          student_id?: string | null
+          tags?: string[] | null
+          team_id?: string | null
+        }
+        Update: {
+          confidence_level?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          observation_type?: string
+          observer_id?: string | null
+          student_id?: string | null
+          tags?: string[] | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_observations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_observations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_observations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "research_observations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_performance_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "research_observations_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
@@ -280,15 +392,7 @@ export type Database = {
           task_title?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "student_action_plans_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       student_metrics: {
         Row: {
@@ -327,12 +431,76 @@ export type Database = {
           technical_skills?: number | null
           updated_at?: string | null
         }
+        Relationships: []
+      }
+      student_metrics_snapshots: {
+        Row: {
+          academic_year: string
+          created_at: string
+          id: string
+          metrics: Json
+          notes: string | null
+          role: Database["public"]["Enums"]["student_role"] | null
+          student_id: string
+          team_id: string | null
+          week_number: number
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          id?: string
+          metrics: Json
+          notes?: string | null
+          role?: Database["public"]["Enums"]["student_role"] | null
+          student_id: string
+          team_id?: string | null
+          week_number: number
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          id?: string
+          metrics?: Json
+          notes?: string | null
+          role?: Database["public"]["Enums"]["student_role"] | null
+          student_id?: string
+          team_id?: string | null
+          week_number?: number
+        }
         Relationships: [
           {
-            foreignKeyName: "student_metrics_student_id_fkey"
+            foreignKeyName: "student_metrics_snapshots_student_id_fkey"
             columns: ["student_id"]
-            isOneToOne: true
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_metrics_snapshots_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_metrics_snapshots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "student_metrics_snapshots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_performance_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "student_metrics_snapshots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -359,72 +527,186 @@ export type Database = {
           reflection_text?: string
           student_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "student_reflections_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       students: {
         Row: {
           archived: boolean | null
-          created_at: string
+          created_at: string | null
+          email: string | null
+          email_personal: string | null
           id: string
+          metrics: Json | null
+          metrics_history: Json[] | null
           name: string
-          personal_email: string | null
-          status: string
-          university_email: string
-          updated_at: string
+          observation_notes: string | null
+          role: string | null
+          srl_score: number | null
+          status: Database["public"]["Enums"]["student_status"] | null
+          university_email: string | null
+          updated_at: string | null
         }
         Insert: {
           archived?: boolean | null
-          created_at?: string
+          created_at?: string | null
+          email?: string | null
+          email_personal?: string | null
           id?: string
+          metrics?: Json | null
+          metrics_history?: Json[] | null
           name: string
-          personal_email?: string | null
-          status?: string
-          university_email?: string
-          updated_at?: string
+          observation_notes?: string | null
+          role?: string | null
+          srl_score?: number | null
+          status?: Database["public"]["Enums"]["student_status"] | null
+          university_email?: string | null
+          updated_at?: string | null
         }
         Update: {
           archived?: boolean | null
-          created_at?: string
+          created_at?: string | null
+          email?: string | null
+          email_personal?: string | null
           id?: string
+          metrics?: Json | null
+          metrics_history?: Json[] | null
           name?: string
-          personal_email?: string | null
-          status?: string
-          university_email?: string
-          updated_at?: string
+          observation_notes?: string | null
+          role?: string | null
+          srl_score?: number | null
+          status?: Database["public"]["Enums"]["student_status"] | null
+          university_email?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
-      team_members: {
+      students_backup: {
         Row: {
-          id: string
-          joined_at: string
+          created_at: string | null
+          email: string | null
+          id: string | null
+          metrics: Json | null
+          name: string | null
           role: string | null
-          student_id: string
-          team_id: string
         }
         Insert: {
-          id?: string
-          joined_at?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          metrics?: Json | null
+          name?: string | null
           role?: string | null
-          student_id: string
-          team_id: string
         }
         Update: {
-          id?: string
-          joined_at?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          metrics?: Json | null
+          name?: string | null
           role?: string | null
-          student_id?: string
+        }
+        Relationships: []
+      }
+      team_analytics: {
+        Row: {
+          academic_year: string
+          active_members: number | null
+          avg_adaptability: number | null
+          avg_collaboration: number | null
+          avg_planning: number | null
+          avg_srl_score: number | null
+          avg_team_support: number | null
+          created_at: string
+          id: string
+          performance_trend: string | null
+          team_id: string
+          team_size: number | null
+          week_number: number
+        }
+        Insert: {
+          academic_year: string
+          active_members?: number | null
+          avg_adaptability?: number | null
+          avg_collaboration?: number | null
+          avg_planning?: number | null
+          avg_srl_score?: number | null
+          avg_team_support?: number | null
+          created_at?: string
+          id?: string
+          performance_trend?: string | null
+          team_id: string
+          team_size?: number | null
+          week_number: number
+        }
+        Update: {
+          academic_year?: string
+          active_members?: number | null
+          avg_adaptability?: number | null
+          avg_collaboration?: number | null
+          avg_planning?: number | null
+          avg_srl_score?: number | null
+          avg_team_support?: number | null
+          created_at?: string
+          id?: string
+          performance_trend?: string | null
           team_id?: string
+          team_size?: number | null
+          week_number?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "team_analytics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_analytics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_performance_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_analytics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          assigned_at: string | null
+          id: string
+          role: string | null
+          student_id: string | null
+          team_id: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string
+          role?: string | null
+          student_id?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string
+          role?: string | null
+          student_id?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "team_members_student_id_fkey"
             columns: ["student_id"]
@@ -436,10 +718,48 @@ export type Database = {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_performance_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
+      }
+      team_members_backup: {
+        Row: {
+          assigned_at: string | null
+          id: string | null
+          role: string | null
+          student_id: string | null
+          team_id: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string | null
+          role?: string | null
+          student_id?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string | null
+          role?: string | null
+          student_id?: string | null
+          team_id?: string | null
+        }
+        Relationships: []
       }
       team_metrics: {
         Row: {
@@ -466,48 +786,56 @@ export type Database = {
           team_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "team_metrics_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: true
-            referencedRelation: "teams"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       teams: {
         Row: {
-          charter: string | null
-          created_at: string
+          archived: boolean | null
+          created_at: string | null
           id: string
           leader_id: string | null
           logo_url: string | null
           name: string
-          status: string
-          updated_at: string
+          performance_metrics: Json | null
+          project_description: string | null
+          research_focus: string | null
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
-          charter?: string | null
-          created_at?: string
+          archived?: boolean | null
+          created_at?: string | null
           id?: string
           leader_id?: string | null
           logo_url?: string | null
           name: string
-          status?: string
-          updated_at?: string
+          performance_metrics?: Json | null
+          project_description?: string | null
+          research_focus?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
-          charter?: string | null
-          created_at?: string
+          archived?: boolean | null
+          created_at?: string | null
           id?: string
           leader_id?: string | null
           logo_url?: string | null
           name?: string
-          status?: string
-          updated_at?: string
+          performance_metrics?: Json | null
+          project_description?: string | null
+          research_focus?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teams_leader_id_fkey"
             columns: ["leader_id"]
@@ -516,6 +844,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teams_backup: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -540,9 +886,62 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      student_analytics: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          email_personal: string | null
+          id: string | null
+          metrics: Json | null
+          name: string | null
+          observation_notes: string | null
+          role: string | null
+          srl_score: number | null
+          status: Database["public"]["Enums"]["student_status"] | null
+          team_id: string | null
+          team_name: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      team_performance_analytics: {
+        Row: {
+          avg_adaptability: number | null
+          avg_collaboration: number | null
+          avg_planning: number | null
+          avg_srl_score: number | null
+          avg_team_support: number | null
+          created_at: string | null
+          leader_id: string | null
+          leader_name: string | null
+          project_description: string | null
+          research_focus: string | null
+          team_id: string | null
+          team_name: string | null
+          team_roles: string[] | null
+          team_size: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      delete_duplicate_students: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -550,11 +949,38 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: { Args: { user_id: string }; Returns: boolean }
+      is_admin:
+        | { Args: { user_id: string }; Returns: boolean }
+        | { Args: never; Returns: boolean }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
+      mark_duplicate_students: {
+        Args: never
+        Returns: {
+          duplicate_count: number
+          email: string
+          id: string
+          name: string
+        }[]
+      }
+      record_weekly_metrics_snapshot: {
+        Args: {
+          p_academic_year?: string
+          p_student_id: string
+          p_week_number: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      student_role: "leader" | "developer" | "designer" | "researcher" | "free"
+      student_status:
+        | "active"
+        | "team_assigned"
+        | "inactive"
+        | "graduated"
+        | "busy"
+        | "free"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -683,6 +1109,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      student_role: ["leader", "developer", "designer", "researcher", "free"],
+      student_status: [
+        "active",
+        "team_assigned",
+        "inactive",
+        "graduated",
+        "busy",
+        "free",
+      ],
     },
   },
 } as const
