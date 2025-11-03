@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
 
 interface StudentFormDialogProps {
   open: boolean;
@@ -21,11 +22,19 @@ interface StudentFormDialogProps {
 }
 
 export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: StudentFormDialogProps) => {
-  const [formData, setFormData] = useState({
+  type StudentStatus = 'active' | 'team_assigned' | 'inactive' | 'graduated' | 'free' | 'busy';
+  const studentSchema = z.object({
+    name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be under 100 characters'),
+    university_email: z.string().trim().toLowerCase().email('Invalid university email').max(255, 'Email too long'),
+    personal_email: z.string().trim().toLowerCase().email('Invalid personal email').max(255, 'Email too long').optional().or(z.literal('')),
+    status: z.enum(['active','team_assigned','inactive','graduated','free','busy'])
+  });
+
+  const [formData, setFormData] = useState<{ name: string; university_email: string; personal_email: string; status: StudentStatus }>({
     name: student?.name || "",
     university_email: student?.university_email || "",
-    personal_email: student?.personal_email || "",
-    status: student?.status || "active",
+    personal_email: (student as any)?.email_personal || (student as any)?.personal_email || "",
+    status: (student?.status as StudentStatus) || "active",
   });
   const [loading, setLoading] = useState(false);
 
@@ -34,15 +43,23 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
     setLoading(true);
 
     try {
+      const parsed = studentSchema.safeParse(formData);
+      if (!parsed.success) {
+        const first = parsed.error.errors[0];
+        toast.error(first?.message || 'Invalid input');
+        return;
+      }
+      const values = parsed.data;
+
       if (student) {
         // Update existing student
         const { error } = await supabase
           .from("students")
           .update({
-            name: formData.name,
-            university_email: formData.university_email,
-            personal_email: formData.personal_email || null,
-            status: formData.status,
+            name: values.name,
+            university_email: values.university_email,
+            email_personal: values.personal_email || null,
+            status: values.status,
           })
           .eq("id", student.id);
 
@@ -53,10 +70,10 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
         const { error } = await supabase
           .from("students")
           .insert({
-            name: formData.name,
-            university_email: formData.university_email,
-            personal_email: formData.personal_email || null,
-            status: formData.status,
+            name: values.name,
+            university_email: values.university_email,
+            email_personal: values.personal_email || null,
+            status: values.status,
           });
 
         if (error) throw error;
@@ -65,7 +82,7 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: "", university_email: "", personal_email: "", status: "active" });
+      setFormData({ name: "", university_email: "", personal_email: "", status: "active" as StudentStatus });
     } catch (error: any) {
       console.error("Error saving student:", error);
       toast.error(error.message || "Failed to save student");
@@ -117,7 +134,7 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as StudentStatus })}>
               <SelectTrigger id="status">
                 <SelectValue />
               </SelectTrigger>

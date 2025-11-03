@@ -9,12 +9,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw } from "lucide-react";
+import { z } from "zod";
+
+const studentSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be under 100 characters'),
+  university_email: z.string().trim().toLowerCase().email('Invalid university email').max(255, 'Email too long'),
+  email_personal: z.string().trim().toLowerCase().email('Invalid personal email').max(255, 'Email too long').optional().or(z.literal('')),
+});
 
 interface Student {
   id: string;
   name: string;
   university_email: string;
-  personal_email?: string;
+  email_personal?: string;
   status: string;
   created_at: string;
 }
@@ -26,7 +33,7 @@ export const StudentsTab = () => {
   const [newStudent, setNewStudent] = useState({ 
     name: "", 
     university_email: "", 
-    personal_email: "" 
+    email_personal: "" 
   });
 
   useEffect(() => {
