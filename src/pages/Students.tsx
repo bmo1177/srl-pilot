@@ -33,7 +33,7 @@ interface Student {
   name: string;
   status: string;
   university_email: string;
-  personal_email: string | null;
+  email_personal: string | null;
   created_at: string;
   team_members?: Array<{
     team: {
@@ -90,7 +90,7 @@ const Students = () => {
         name: s.name,
         status: s.status,
         university_email: s.university_email || '',
-        personal_email: s.personal_email,
+        email_personal: s.email_personal,
         created_at: s.created_at,
         team_members: s.team_members
       }));
@@ -264,7 +264,7 @@ const Students = () => {
           id: selectedStudent.id,
           name: selectedStudent.name,
           university_email: selectedStudent.university_email,
-          personal_email: selectedStudent.personal_email,
+          personal_email: selectedStudent.email_personal,
           status: selectedStudent.status
         } : null}
         onSuccess={fetchStudents}

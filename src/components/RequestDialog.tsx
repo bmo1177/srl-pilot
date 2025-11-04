@@ -122,11 +122,8 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
 
         if (error) throw error;
 
-        // Update student status to pending
-        await supabase
-          .from('students')
-          .update({ status: 'pending' })
-          .eq('id', selectedStudent);
+        // Member statuses will be updated when request is approved by admin
+        // No status change needed during request submission
       }
 
       toast.success(`Request submitted successfully! Waiting for admin approval.`);

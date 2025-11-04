@@ -76,14 +76,14 @@ export const StudentsTab = () => {
         .insert([{
           name: newStudent.name.trim(),
           university_email: newStudent.university_email.trim().toLowerCase(),
-          personal_email: newStudent.personal_email.trim() || null,
+          email_personal: newStudent.email_personal.trim() || null,
           status: 'active'
         }]);
 
       if (error) throw error;
 
       toast.success("Student added successfully");
-      setNewStudent({ name: "", university_email: "", personal_email: "" });
+      setNewStudent({ name: "", university_email: "", email_personal: "" });
       setShowAddDialog(false);
     } catch (error: any) {
       toast.error("Failed to add student: " + error.message);
@@ -164,13 +164,13 @@ export const StudentsTab = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="personal_email">Personal Email (Optional)</Label>
+                    <Label htmlFor="email_personal">Personal Email (Optional)</Label>
                     <Input
-                      id="personal_email"
+                      id="email_personal"
                       type="email"
                       placeholder="personal@gmail.com"
-                      value={newStudent.personal_email}
-                      onChange={(e) => setNewStudent({ ...newStudent, personal_email: e.target.value })}
+                      value={newStudent.email_personal}
+                      onChange={(e) => setNewStudent({ ...newStudent, email_personal: e.target.value })}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -213,7 +213,7 @@ export const StudentsTab = () => {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm">{student.university_email}</TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                      {student.personal_email || '-'}
+                      {student.email_personal || '-'}
                     </TableCell>
                     <TableCell>{getStatusBadge(student.status)}</TableCell>
                     <TableCell className="text-right">

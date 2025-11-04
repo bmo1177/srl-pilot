@@ -65,7 +65,7 @@ export default function RequestForm() {
         id: s.id,
         name: s.name,
         university_email: s.university_email || '',
-        personal_email: s.personal_email,
+        email_personal: s.email_personal,
         status: s.status
       }));
       setStudents(mappedStudents);
