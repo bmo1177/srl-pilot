@@ -22,7 +22,6 @@ interface Team {
   logo_url?: string;
   leader_id: string;
   status: string;
-  charter: string | null;
   members: TeamMember[];
   pendingCount: number;
 }
