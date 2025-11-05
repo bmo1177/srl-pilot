@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { teamCreationSchema } from "@/utils/validation";
+import { handleDatabaseError } from "@/utils/errorUtils";
 import { UserPlus, Users, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -74,8 +76,16 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
     }
 
     if (requestType === "create") {
-      if (!newTeamName.trim()) {
-        toast.error("Please enter a team name");
+      // Validate using zod schema
+      const validationResult = teamCreationSchema.safeParse({
+        team_name: newTeamName,
+        message: message,
+        selected_members: selectedMembers,
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast.error(firstError.message);
         return;
       }
       
@@ -136,7 +146,8 @@ export const RequestDialog = ({ open, onOpenChange, teams, students }: RequestDi
       setSelectedMembers([]);
       onOpenChange(false);
     } catch (error: any) {
-      toast.error("Failed to submit request: " + error.message);
+      const errorMessage = handleDatabaseError(error, "RequestDialog.submit");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

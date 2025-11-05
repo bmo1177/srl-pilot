@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { studentFormSchema } from "@/utils/validation";
+import { handleDatabaseError } from "@/utils/errorUtils";
 
 interface StudentFormDialogProps {
   open: boolean;
@@ -23,17 +25,16 @@ interface StudentFormDialogProps {
 
 export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: StudentFormDialogProps) => {
   type StudentStatus = 'active' | 'team_assigned' | 'inactive' | 'graduated' | 'free' | 'busy';
-  const studentSchema = z.object({
-    name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name must be under 100 characters'),
-    university_email: z.string().trim().toLowerCase().email('Invalid university email').max(255, 'Email too long'),
-    personal_email: z.string().trim().toLowerCase().email('Invalid personal email').max(255, 'Email too long').optional().or(z.literal('')),
+  
+  // Use centralized validation schema
+  const studentSchema = studentFormSchema.extend({
     status: z.enum(['active','team_assigned','inactive','graduated','free','busy'])
   });
 
-  const [formData, setFormData] = useState<{ name: string; university_email: string; personal_email: string; status: StudentStatus }>({
+  const [formData, setFormData] = useState<{ name: string; university_email: string; email_personal: string; status: StudentStatus }>({
     name: student?.name || "",
     university_email: student?.university_email || "",
-    personal_email: (student as any)?.email_personal || (student as any)?.personal_email || "",
+    email_personal: student?.personal_email || "",
     status: (student?.status as StudentStatus) || "active",
   });
   const [loading, setLoading] = useState(false);
@@ -58,7 +59,7 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .update({
             name: values.name,
             university_email: values.university_email,
-            email_personal: values.personal_email || null,
+            email_personal: values.email_personal || null,
             status: values.status,
           })
           .eq("id", student.id);
@@ -72,7 +73,7 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           .insert({
             name: values.name,
             university_email: values.university_email,
-            email_personal: values.personal_email || null,
+            email_personal: values.email_personal || null,
             status: values.status,
           });
 
@@ -82,10 +83,10 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: "", university_email: "", personal_email: "", status: "active" as StudentStatus });
+      setFormData({ name: "", university_email: "", email_personal: "", status: "active" as StudentStatus });
     } catch (error: any) {
-      console.error("Error saving student:", error);
-      toast.error(error.message || "Failed to save student");
+      const errorMessage = handleDatabaseError(error, "StudentFormDialog.submit");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -122,12 +123,12 @@ export const StudentFormDialog = ({ open, onOpenChange, student, onSuccess }: St
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="personal_email">Personal Email (Optional)</Label>
+            <Label htmlFor="email_personal">Personal Email (Optional)</Label>
             <Input
-              id="personal_email"
+              id="email_personal"
               type="email"
-              value={formData.personal_email}
-              onChange={(e) => setFormData({ ...formData, personal_email: e.target.value })}
+              value={formData.email_personal}
+              onChange={(e) => setFormData({ ...formData, email_personal: e.target.value })}
               placeholder="john@email.com"
             />
           </div>

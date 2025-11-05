@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { requestFormSchema } from "@/utils/validation";
+import { handleDatabaseError } from "@/utils/errorUtils";
 import { UserPlus, Users, Sparkles, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
@@ -118,27 +120,26 @@ export default function RequestForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form data
+    const validationResult = requestFormSchema.safeParse({
+      type: requestType === "join" ? "join_team" : "create_team",
+      team_name: newTeamName,
+      team_id: selectedTeam,
+      message: message,
+    });
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+
     if (!selectedStudent) {
       toast.error("Please select a student");
       return;
     }
 
-    if (requestType === "join" && !selectedTeam) {
-      toast.error("Please select a team to join");
-      return;
-    }
-
     if (requestType === "create") {
-      if (!newTeamName.trim()) {
-        toast.error("Please enter a team name");
-        return;
-      }
-      
-      if (selectedMembers.length === 0) {
-        toast.error("Please select at least one team member");
-        return;
-      }
-
       // Validate team size (max 5 including creator)
       if (selectedMembers.length > 4) {
         toast.error("Maximum team size is 5 members (including you)");
@@ -148,7 +149,6 @@ export default function RequestForm() {
       // Validate members aren't already in teams
       const isValid = await validateMembers(selectedMembers);
       if (!isValid) {
-        setLoading(false);
         return;
       }
     }
@@ -210,7 +210,8 @@ export default function RequestForm() {
       // Navigate back to teams page after 1.5 seconds
       setTimeout(() => navigate("/teams"), 1500);
     } catch (error: any) {
-      toast.error("Failed to submit request: " + error.message);
+      const errorMessage = handleDatabaseError(error, "RequestForm.submit");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

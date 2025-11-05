@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { handleDatabaseError } from "@/utils/errorUtils";
 import { LogOut, AlertCircle } from "lucide-react";
 import { StudentsTab } from "@/components/admin/StudentsTab";
 import { TeamsTab } from "@/components/admin/TeamsTab";
@@ -58,7 +59,8 @@ const Admin = () => {
         window.location.reload();
       }
     } catch (error: any) {
-      toast.error("Login failed: " + error.message);
+      const errorMessage = handleDatabaseError(error, "Admin.login");
+      toast.error(errorMessage);
     }
   };
 

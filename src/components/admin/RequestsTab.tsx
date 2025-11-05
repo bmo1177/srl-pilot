@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { handleDatabaseError } from "@/utils/errorUtils";
 import { Check, X, RefreshCw } from "lucide-react";
 
 interface Request {
@@ -68,7 +69,8 @@ export const RequestsTab = () => {
       
       setRequests(typedRequests);
     } catch (error: any) {
-      toast.error("Failed to load requests: " + error.message);
+      const errorMessage = handleDatabaseError(error, "RequestsTab.fetchRequests");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -157,7 +159,8 @@ export const RequestsTab = () => {
 
       toast.success("Request approved successfully");
     } catch (error: any) {
-      toast.error("Failed to approve request: " + error.message);
+      const errorMessage = handleDatabaseError(error, "RequestsTab.approve");
+      toast.error(errorMessage);
     }
   };
 
@@ -184,7 +187,8 @@ export const RequestsTab = () => {
 
       toast.success("Request denied");
     } catch (error: any) {
-      toast.error("Failed to deny request: " + error.message);
+      const errorMessage = handleDatabaseError(error, "RequestsTab.deny");
+      toast.error(errorMessage);
     }
   };
 

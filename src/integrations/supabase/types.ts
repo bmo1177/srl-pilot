@@ -240,6 +240,13 @@ export type Database = {
             foreignKeyName: "requests_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "team_performance_analytics"
             referencedColumns: ["team_id"]
           },
@@ -327,6 +334,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_observations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "research_observations_team_id_fkey"
@@ -467,6 +481,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_metrics_snapshots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "student_metrics_snapshots_team_id_fkey"
@@ -637,6 +658,13 @@ export type Database = {
             foreignKeyName: "team_analytics_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_analytics_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
             referencedRelation: "team_performance_analytics"
             referencedColumns: ["team_id"]
           },
@@ -685,6 +713,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "student_analytics"
+            referencedColumns: ["team_id"]
           },
           {
             foreignKeyName: "team_members_team_id_fkey"
@@ -867,22 +902,7 @@ export type Database = {
           team_name: string | null
           updated_at: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "team_members_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "team_performance_analytics"
-            referencedColumns: ["team_id"]
-          },
-          {
-            foreignKeyName: "team_members_team_id_fkey"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "teams"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       team_performance_analytics: {
         Row: {
