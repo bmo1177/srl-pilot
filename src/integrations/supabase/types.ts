@@ -949,9 +949,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin:
-        | { Args: { user_id: string }; Returns: boolean }
-        | { Args: never; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       mark_duplicate_students: {
         Args: never
